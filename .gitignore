@@ -1,0 +1,30 @@
+# Godot 4+ specific ignores
+.godot/
+*.tmp
+
+# Godot-specific ignores
+.import/
+export.cfg
+*.translation
+
+# Mono / .NET / C# build artifacts
+.mono/
+data_*/
+mono_crash.*.json
+/bin/
+/obj/
+*.csproj.old
+*.csproj.user
+
+# Visual Studio / Rider / IDE files
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.VSCodeCounter/
+
+# OS generated files
+.DS_Store
+Thumbs.db
