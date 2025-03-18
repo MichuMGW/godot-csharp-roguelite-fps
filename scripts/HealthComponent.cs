@@ -7,8 +7,8 @@ public partial class HealthComponent : Node
 	public delegate void EntityDiedEventHandler();
 
 	[Export]
-	public int maxHealth = 100;
-	public int currentHealth;
+	public float maxHealth = 100f;
+	public float currentHealth;
 	public bool isDead = false;
 
 	public override void _Ready()
@@ -17,10 +17,11 @@ public partial class HealthComponent : Node
 	}
 
 
-	public void TakeDamage(int damage)
+	public void TakeDamage(float damage)
 	{
 		currentHealth -= damage;
-		if (currentHealth <= 0)
+		currentHealth = Mathf.Max(0, currentHealth);
+		if (currentHealth == 0)
 		{
 			EmitSignal(nameof(EntityDied));
 			Owner.QueueFree();
