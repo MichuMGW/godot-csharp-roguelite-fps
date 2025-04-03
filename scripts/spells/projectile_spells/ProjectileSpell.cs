@@ -3,28 +3,57 @@ using System;
 
 public partial class ProjectileSpell : Spell
 {
-
-	public PackedScene ProjectileScene;
-	public ProjectileSpell()
+	public float ProjectileSpeed {get; set;}
+	public float ProjectileSpread {get; set;}
+	private float cooldownTimer;
+	public ProjectileSpell(string SpellName, float SpellDamage, float SpellCooldown, float ManaCost, (Element, Element) SpellElements, string SpellScenePath, float ProjectileSpeed)
+	: base(SpellName,SpellDamage,SpellCooldown,ManaCost,SpellElements,SpellScenePath)
 	{
-		SpellName = "Fireball";
-		SpellCooldown = 2.0f;
-		ManaCost = 20.0f;
-
-		ProjectileScene = GD.Load("res://scenes/projectile.tscn") as PackedScene;
+		this.ProjectileSpeed = ProjectileSpeed; 
 	}
-    public override void Cast(Vector3 position, Vector3 direction, Node3D caster)
+
+	public ProjectileSpell(ProjectileSpellResource resource, (Element, Element) SpellElements) : base(resource, SpellElements)
+	{
+		this.ProjectileSpeed = resource.ProjectileSpeed;
+		this.ProjectileSpread = resource.ProjectileSpread;
+	}
+
+    public override void StartCasting(Vector3 position, Vector3 direction, Node3D caster)
     {
-        //Pocisk zostaje strzworzony na pozycji position, porusza się w kierunku direction, a casterem jest obiekt rzucający zaklęcie
-		if (ProjectileScene == null){
+        if (SpellScene == null){
 			GD.PrintErr("ProjectileScene not found");
 			return;
 		}
-
-		var projectileInstance = (Projectile)ProjectileScene.Instantiate();
-		caster.GetParent().AddChild(projectileInstance);
+		var projectileInstance = (Projectile)SpellScene.Instantiate();
+		caster.Owner.GetParent().AddChild(projectileInstance);
+		projectileInstance.Elements = SpellElements;
+		projectileInstance.Damage = SpellDamage;
+		projectileInstance.Range = SpellRange;
 		projectileInstance.GlobalTransform = caster.GlobalTransform;
-		projectileInstance.Velocity = direction * projectileInstance.Speed;
+		projectileInstance.startPosition = caster.GlobalTransform.Origin;
+		
+		//Projectile Spread
+		float spreadX = Mathf.DegToRad((float)GD.RandRange(-ProjectileSpread, ProjectileSpread));
+        float spreadY = Mathf.DegToRad((float)GD.RandRange(-ProjectileSpread, ProjectileSpread));
+
+        direction = direction.Rotated(Vector3.Up, spreadX);
+        direction = direction.Rotated(Vector3.Right, spreadY);
+
+        projectileInstance.Velocity = direction.Normalized() * ProjectileSpeed;
+    }
+
+	public override void HoldCasting(Vector3 position, Vector3 direction, Node3D caster, double delta)
+    {
+		return;
+    }
+
+    public override void HoldCasting(double delta)
+    {
+        return;
+    }
+	    public override void EndCasting(Vector3 position, Vector3 direction, Node3D caster)
+    {
+        return;
     }
 
 }

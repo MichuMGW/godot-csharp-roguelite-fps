@@ -1,5 +1,7 @@
-[gd_scene load_steps=11 format=3 uid="uid://dgoantgxsbika"]
+[gd_scene load_steps=13 format=3 uid="uid://dgoantgxsbika"]
 
+[ext_resource type="Script" uid="uid://tfie3kin1xw" path="res://scripts/entity/enemy/Enemy.cs" id="1_n365g"]
+[ext_resource type="Script" uid="uid://duw1pby1ks1ka" path="res://scripts/components/StatusComponent.cs" id="1_qhw0p"]
 [ext_resource type="PackedScene" uid="uid://djce71rtuhem1" path="res://scenes/experience_point_drop_component.tscn" id="1_wm70f"]
 [ext_resource type="PackedScene" uid="uid://by8xwputf81xn" path="res://scenes/experience_point.tscn" id="2_ve544"]
 [ext_resource type="PackedScene" uid="uid://cmfdoxh40cyda" path="res://scenes/enemy_navigation_agent_3d.tscn" id="3_ve544"]
@@ -16,7 +18,14 @@ albedo_color = Color(1, 0, 0, 1)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cuegt"]
 
-[node name="BasicEnemy" type="CharacterBody3D"]
+[node name="BasicEnemy" type="CharacterBody3D" node_paths=PackedStringArray("Health", "Movement", "NavAgent", "Status")]
+collision_layer = 5
+collision_mask = 3
+script = ExtResource("1_n365g")
+Health = NodePath("HealthComponent")
+Movement = NodePath("EnemyMovement")
+NavAgent = NodePath("EnemyNavigationAgent3D")
+Status = NodePath("StatusComponent")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_m3p60")
@@ -25,17 +34,37 @@ mesh = SubResource("CapsuleMesh_te8us")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_wd17u")
 
+[node name="StatusComponent" type="Node" parent="."]
+script = ExtResource("1_qhw0p")
+
+[node name="FireTimer" type="Timer" parent="StatusComponent"]
+one_shot = true
+
+[node name="SlowTimer" type="Timer" parent="StatusComponent"]
+wait_time = 5.0
+one_shot = true
+
+[node name="StunTimer" type="Timer" parent="StatusComponent"]
+wait_time = 5.0
+one_shot = true
+
+[node name="FreezeTimer" type="Timer" parent="StatusComponent"]
+wait_time = 5.0
+one_shot = true
+
 [node name="ExperiencePointDropComponent" parent="." node_paths=PackedStringArray("healthComponent") instance=ExtResource("1_wm70f")]
 experiencePoint = ExtResource("2_ve544")
 healthComponent = NodePath("../HealthComponent")
 
 [node name="EnemyNavigationAgent3D" parent="." instance=ExtResource("3_ve544")]
+debug_enabled = false
 
 [node name="EnemyMovement" parent="." node_paths=PackedStringArray("enemy", "navAgent") instance=ExtResource("4_qhw0p")]
 enemy = NodePath("..")
 navAgent = NodePath("../EnemyNavigationAgent3D")
 
 [node name="HealthComponent" parent="." instance=ExtResource("5_n365g")]
+maxHealth = 50000.0
 
 [node name="HurtboxComponent" parent="." node_paths=PackedStringArray("healthComponent") instance=ExtResource("6_cij6a")]
 healthComponent = NodePath("../HealthComponent")
