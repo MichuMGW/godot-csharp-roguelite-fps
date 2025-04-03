@@ -1,46 +1,95 @@
 using Godot;
 using System;
+using Godot.Collections;
 
 public partial class StatusComponent : Node
 {
 	//Można tu dodać float duration do sygnału
 	// [Signal] public delegate void ApplyStatusEffectEventHandler(Element firstElement, Element secondElement);
-	[Signal] public delegate void OnFireEventHandler();
-	[Signal] public delegate void OnSlowedEventHandler();
-	[Signal] public delegate void OnStunnedEventHandler();
-	[Signal] public delegate void OnFrozenEventHandler();
+	[Signal] public delegate void OnFireEventHandler(bool isOnFire);
+	[Signal] public delegate void OnSlowedEventHandler(bool isSlowed);
+	[Signal] public delegate void OnStunnedEventHandler(bool isStunned);
+	[Signal] public delegate void OnFrozenEventHandler(bool isFrozen);
 	//TODO: Jakbym chciał dodać animacje przy spaleniu
 	//[Signal] public delegate void OnBurnedEventHandler();
-	public bool isOnFire = false;
-	public bool isSlowed = false;
-	public bool isStunned = false;
-	public bool isFrozen = false;
+	public Timer FireTimer {get; set;}
+	public Timer SlowTimer {get; set;}
+	public Timer StunTimer {get; set;}
+	public Timer FreezeTimer {get; set;}
+
+	// private Dictionary statusTimers;
 	public override void _Ready()
 	{
+		InitializeTimers();
+		// statusTimers = new Dictionary();
+		// foreach (Timer child in GetChildren()){
+		// 	if (child is Timer){
+		// 		statusTimers[child.Name] = child;
+		// 		child.Timeout += () => {
+		// 			if (child.Name == "OnFireTimer"){
+		// 				IsOnFire = false;
+		// 				EmitSignal(nameof(OnFire));
+		// 				GD.Print("Off Fire");
+		// 			}
+		// 			if (child.Name == "OnFrozenTimer"){
+		// 				IsFrozen = false;
+		// 				GD.Print("Unfrozen");
+		// 			}
+		// 			if (child.Name == "OnStunnedTimer"){
+		// 				IsStunned = false;
+		// 				GD.Print("Unstunned");
+		// 			}
+		// 			if (child.Name == "OnSlowedTimer"){
+		// 				IsSlowed = false;
+		// 				GD.Print("Unslowed");
+		// 			}
+		// 		};
 
+		// 	}
+		// }
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
+	private void InitializeTimers(){
+		FireTimer = GetNode<Timer>("FireTimer");
+		SlowTimer = GetNode<Timer>("SlowTimer");
+		StunTimer = GetNode<Timer>("StunTimer");
+		FreezeTimer = GetNode<Timer>("FreezeTimer");
+
+		FireTimer.Timeout += () => {
+			GD.Print("Off fire");
+			EmitSignal(nameof(OnFire), false);
+			
+		};
+
+		SlowTimer.Timeout += () => {
+
+			EmitSignal(nameof(OnSlowed), false);
+		};
+
+		StunTimer.Timeout += () => {
+
+			EmitSignal(nameof(OnStunned), false);
+		};
+
+		FreezeTimer.Timeout += () => {
+
+			EmitSignal(nameof(OnFrozen), false);
+		};
 	}
 
 	public void ApplyStatusEffect(Element firstElement, Element secondElement){
 		if (firstElement == Element.Fire || secondElement == Element.Fire){
-			isOnFire = true;
-			EmitSignal(nameof(OnFire));
+			EmitSignal(nameof(OnFire), true);
+			FireTimer.Start();
 			GD.Print("On Fire");
 		}
 		if (firstElement == Element.Water || secondElement == Element.Water){
-			isFrozen = true;
-			GD.Print("Frozen");
-		}
-		if (firstElement == Element.Earth || secondElement == Element.Earth){
-			isSlowed = true;
+			EmitSignal(nameof(OnSlowed), true);
 			GD.Print("Slowed");
 		}
-		if (firstElement == Element.Air || secondElement == Element.Air){
-			isStunned = true;
+		if (firstElement == Element.Earth || secondElement == Element.Earth){
+			//dodać obsługę stunów
+			EmitSignal(nameof(OnStunned), true);
 			GD.Print("Stunned");
 		}
 	}
