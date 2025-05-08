@@ -6,10 +6,12 @@ public partial class StatusComponent : Node
 {
 	//Można tu dodać float duration do sygnału
 	// [Signal] public delegate void ApplyStatusEffectEventHandler(Element firstElement, Element secondElement);
-	[Signal] public delegate void OnFireEventHandler(bool isOnFire);
-	[Signal] public delegate void OnSlowedEventHandler(bool isSlowed);
-	[Signal] public delegate void OnStunnedEventHandler(bool isStunned);
-	[Signal] public delegate void OnFrozenEventHandler(bool isFrozen);
+	[Signal] public delegate void FireStartedEventHandler(float damage);
+	[Signal] public delegate void FireEndedEventHandler();
+	[Signal] public delegate void SlowStartedEventHandler(float slowAmount);
+	[Signal] public delegate void SlowEndedEventHandler();
+	[Signal] public delegate void StunnedEventHandler(bool isStunned);
+	[Signal] public delegate void FrozenEventHandler(bool isFrozen);
 	//TODO: Jakbym chciał dodać animacje przy spaleniu
 	//[Signal] public delegate void OnBurnedEventHandler();
 	public Timer FireTimer {get; set;}
@@ -57,39 +59,36 @@ public partial class StatusComponent : Node
 
 		FireTimer.Timeout += () => {
 			GD.Print("Off fire");
-			EmitSignal(nameof(OnFire), false);
-			
+			EmitSignal(nameof(FireEnded));
 		};
 
 		SlowTimer.Timeout += () => {
-
-			EmitSignal(nameof(OnSlowed), false);
+			EmitSignal(nameof(SlowEnded));
 		};
 
 		StunTimer.Timeout += () => {
-
-			EmitSignal(nameof(OnStunned), false);
+			EmitSignal(nameof(Stunned), false);
 		};
 
 		FreezeTimer.Timeout += () => {
-
-			EmitSignal(nameof(OnFrozen), false);
+			EmitSignal(nameof(Frozen), false);
 		};
 	}
 
 	public void ApplyStatusEffect(Element firstElement, Element secondElement){
 		if (firstElement == Element.Fire || secondElement == Element.Fire){
-			EmitSignal(nameof(OnFire), true);
+			EmitSignal(nameof(FireStarted), 10f);
 			FireTimer.Start();
 			GD.Print("On Fire");
 		}
 		if (firstElement == Element.Water || secondElement == Element.Water){
-			EmitSignal(nameof(OnSlowed), true);
+			EmitSignal(nameof(SlowStarted), 0.5f);
+			SlowTimer.Start();
 			GD.Print("Slowed");
 		}
 		if (firstElement == Element.Earth || secondElement == Element.Earth){
 			//dodać obsługę stunów
-			EmitSignal(nameof(OnStunned), true);
+			EmitSignal(nameof(Stunned), true);
 			GD.Print("Stunned");
 		}
 	}
