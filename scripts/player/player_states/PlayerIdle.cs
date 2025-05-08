@@ -19,7 +19,7 @@ public partial class PlayerIdle : State
         animState = (AnimationNodeStateMachinePlayback)animTree.Get("parameters/playback");
         
         animTree.Active = true;
-        animState.Travel("LIdle");
+        // animState.Travel("LIdle");
     }
 
     public override void Exit()
@@ -39,7 +39,7 @@ public partial class PlayerIdle : State
             SpellHand leftHand = scm.LeftHand;
             //Tutaj dodać czekanie na koniec animacji i zmianę stanu po skończeniu
             //ZASTĄPIĆ SWITCHEM??????
-            if (!scm.isOnCooldown(leftHand.spell)){
+            if (!scm.IsOnCooldown(leftHand.spell)){
                 switch(leftHand.spell){
                     case ProjectileSpell projectileSpell:
                         EmitSignal(nameof(Transitioned), this, "CastingProjectileSpell");

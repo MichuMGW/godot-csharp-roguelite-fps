@@ -17,7 +17,7 @@ public partial class CastingProjectileSpell : State
         scm = Owner.GetNode<SpellCastManager>("SpellCastManager");
         animationPlayer = scm.LeftHand.animationPlayer;
         // animationPlayer.Play("StartCastingFireball");
-		GD.Print("Casting left spell");
+		// GD.Print("Casting left spell");
 
         animTree = scm.GetParent().GetNode<AnimationTree>("Head/Camera3D/Arms/AnimationTree");
         animState = (AnimationNodeStateMachinePlayback)animTree.Get("parameters/playback"); 
@@ -50,7 +50,7 @@ public partial class CastingProjectileSpell : State
     {
         if(Input.IsActionPressed("CastLeftSpell")){
 			SpellHand leftHand = scm.LeftHand;
-			if (!scm.isOnCooldown(leftHand.spell)){
+			if (!scm.IsOnCooldown(leftHand.spell)){
                 GD.Print("Setting anim speed scale to: " + playbackSpeed);
                 
                 // animState.Travel("LCastProjectile1");
