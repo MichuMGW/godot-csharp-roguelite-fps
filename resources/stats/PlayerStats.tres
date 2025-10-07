@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PlayerStatsResource" load_steps=2 format=3 uid="uid://vu5kiqxheqod"]
+
+[ext_resource type="Script" uid="uid://cuunlsiuuxq70" path="res://resources/stats/PlayerStatsResource.cs" id="1_0awl1"]
+
+[resource]
+script = ExtResource("1_0awl1")
+MaxHealth = 100.0
+Range = 100.0
+Damage = 10.0
+Speed = 10.0
+Radius = 50.0
+Spread = 5.0
+metadata/_custom_type_script = "uid://cuunlsiuuxq70"

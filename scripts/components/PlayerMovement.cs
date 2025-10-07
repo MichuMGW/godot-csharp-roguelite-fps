@@ -4,14 +4,30 @@ using System;
 public partial class PlayerMovement : Node
 {
     [Export] public CharacterBody3D player;
-    [Export] float walkSpeed = 10.0f;
-    [Export] float sprintSpeed = 20.0f;
-    [Export] float jumpForce = 10.0f;
+    // [Export] private float _walkSpeed = 10.0f;
+    // [Export] private float _sprintSpeed = 20.0f;
+    // [Export] private float _jumpForce = 10.0f;
+    private float _walkSpeed;
+    private float _sprintSpeed;
+    private float _jumpForce;
+
+    private PlayerStatsManager _stats;
 
     public override void _Process(double delta)
     {
         Move((float)delta);
         player.MoveAndSlide();
+
+        _stats = GetParent().GetNode<PlayerStatsManager>("PlayerStatsManager");
+
+        _walkSpeed = _stats.Speed;
+        _sprintSpeed = _stats.Speed * 2;
+        _stats.SpeedChanged += OnSpeedChanged;
+    }
+
+    private void OnSpeedChanged(float value){
+        _walkSpeed = value;
+        _sprintSpeed = value * 2;
     }
 
     private void Move(float delta){
@@ -32,12 +48,12 @@ public partial class PlayerMovement : Node
         }
 
         moveDirection = moveDirection.Normalized();
-        float speed = Input.IsActionPressed("Sprint") ? sprintSpeed : walkSpeed;
+        float speed = Input.IsActionPressed("Sprint") ? _sprintSpeed : _walkSpeed;
         player.Velocity = new Vector3(moveDirection.X * speed, player.Velocity.Y, moveDirection.Z * speed);
 
         if(player.IsOnFloor()){
             if(Input.IsActionPressed("Jump")){
-                player.Velocity = new Vector3(player.Velocity.X, jumpForce, player.Velocity.Z);
+                player.Velocity = new Vector3(player.Velocity.X, _jumpForce, player.Velocity.Z);
             } else {
                 player.Velocity = new Vector3(player.Velocity.X, 0, player.Velocity.Z);
             }
