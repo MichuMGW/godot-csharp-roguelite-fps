@@ -19,9 +19,22 @@ config/icon="res://icon.svg"
 
 GameEvents="*res://scripts/GameEvents.cs"
 
+[display]
+
+window/size/viewport_width=1200
+window/size/viewport_height=800
+
 [dotnet]
 
 project/assembly_name="3D Shooter - prototyp"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
+
+[gdunit4]
+
+Shortcuts/filesystem/run_test=PackedInt32Array(4194326, 4194328, 4194338)
 
 [input]
 
@@ -79,8 +92,15 @@ CastRightSpell={
 [layer_names]
 
 3d_physics/layer_1="Terrain"
-3d_physics/layer_2="Player"
-3d_physics/layer_3="Enemy"
+3d_physics/layer_2="PlayerBody"
+3d_physics/layer_3="PlayerHurtbox"
+3d_physics/layer_4="PlayerHitbox"
+3d_physics/layer_5="EnemyBody"
+3d_physics/layer_6="EnemyHurtBox"
+3d_physics/layer_7="EnemyHitbox"
+3d_physics/layer_8="Pickups"
+3d_physics/size/viewport_width=1600
+3d_physics/size/viewport_height=1200
 
 [physics]
 

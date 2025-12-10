@@ -1,14 +1,18 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class Projectile : CharacterBody3D
 {
     public (Element, Element) Elements {get; set;} //Żywioły zaklęcia
+    // public Element Element {get; set; }
     public float Gravity {get; set;} // Grawitacja
     public float Damage {get; set;} // Obrażenia
     public float Range {get; set;} // Zasięg pocisku
+    public float LifeTime {get; set;} = 5f;
     public Vector3 direction;
     public Vector3 startPosition;
+    private float _timeAlive = 0f;
 
     public override void _PhysicsProcess(double delta)
     {
@@ -18,6 +22,13 @@ public partial class Projectile : CharacterBody3D
         // Przesunięcie pocisku i sprawdzenie kolizji
         KinematicCollision3D collision = MoveAndCollide(Velocity * (float)delta);
 
+        _timeAlive += (float)delta;
+
+        if (_timeAlive >= LifeTime)
+        {
+            QueueFree();
+        }
+
         if (startPosition.DistanceTo(GlobalTransform.Origin) > Range)
         {
             //TODO: Add animation
@@ -26,19 +37,9 @@ public partial class Projectile : CharacterBody3D
         
         if (collision != null)
         {
-            Node3D hitObject = (Node3D)collision.GetCollider();
-
-            if (hitObject is CharacterBody3D characterBody)
-            {
-                var enemy = characterBody as Enemy;
-                enemy.Health.TakeDamage(Damage);
-                enemy.Health.ShowDamage(collision.GetPosition(), Damage, new Color(1, 1, 1));
-                enemy.Status.ApplyStatusEffect(Elements.Item1, Elements.Item2);
-            }
-
-            // Pocisk znika po kolizji
             QueueFree();
         }
     }
+
 }
 
