@@ -1,243 +1,106 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class PlayerStatsManager : Node
 {
+    [Signal] public delegate void StatChangedEventHandler(int statId, float newValue, float oldValue);
     [Signal] public delegate void StatsChangedEventHandler();
-    [Signal] public delegate void JumpForceChangedEventHandler(float value);
-    [Signal] public delegate void MaxHealthChangedEventHandler(float value);
-    [Signal] public delegate void DamageChangedEventHandler(float value);
-    [Signal] public delegate void RangeChangedEventHandler(float value);
-    [Signal] public delegate void SpeedChangedEventHandler(float value);
-    [Signal] public delegate void RadiusChangedEventHandler(float value);
-    [Signal] public delegate void SpreadChangedEventHandler(float value);
 
-    private float _maxHealth;
-    private float _range;
-    private float _damage;
-    private float _speed;
-    private float _jumpForce;
-    private float _radius;
-    private float _spread;
+    private readonly Dictionary<StatId, StatValue> _stats = new();
 
-    public float MaxHealth
-    { 
-        get => _maxHealth;
-        set
+    public float GetStat(StatId id) => _stats.TryGetValue(id, out var v) ? v.Final : GetDefault(id);
+
+    private float GetDefault(StatId id)
+    {
+        // sensowne defaulty, żeby nie było 0 jak ktoś zapomni ustawić
+        return id switch
         {
-            _maxHealth = EnsureNonNegative(value);
-            EmitSignal(nameof(MaxHealthChanged), value);
-        }
+            StatId.SpellDamageMultiplier => 1f,
+            StatId.SpellRangeMultiplier => 1f,
+            StatId.ProjectileSpeedMultiplier => 1f,
+            StatId.CooldownReduction => 0f,
+            _ => 0f
+        };
     }
 
-    public float Range
+    private StatValue GetOrCreate(StatId id)
     {
-        get => _range;
-        set
+        if (_stats.TryGetValue(id, out var v))
+            return v;
+
+        // domyślne Multiplier = 1
+        v = new StatValue { Base = 0f, Additive = 0f, Multiplier = 1f };
+        _stats[id] = v;
+        return v;
+    }
+
+    public void SetBaseStat(StatId id, float baseValue)
+    {
+        float old = GetStat(id);
+        var v = GetOrCreate(id);
+
+        v.Base = baseValue;
+        _stats[id] = v;
+
+        EmitIfChanged(id, old);
+    }
+
+    public void AddModifier(StatId id, float add = 0f, float mult = 1f)
+    {
+        float old = GetStat(id);
+        var v = GetOrCreate(id);
+
+        v.Additive += add;
+        v.Multiplier *= mult;
+        if (v.Multiplier < 0f) v.Multiplier = 0f;
+
+        _stats[id] = v;
+
+        EmitIfChanged(id, old);
+    }
+
+    public void ResetAll()
+    {
+        _stats.Clear();
+        EmitSignal(SignalName.StatsChanged);
+    }
+
+    public void InitializeFromResource(PlayerStatsResource res, bool clearFirst = true)
+    {
+        if (res == null)
         {
-            _range = EnsureNonNegative(value);
-            EmitSignal(nameof(RangeChanged), value);
-        }
-    }
-
-    public float Damage
-    {
-        get => _damage;
-        set
-        {
-            _damage = EnsureNonNegative(value);
-            EmitSignal(nameof(DamageChanged), value);
-        }
-    }
-
-    public float Speed
-    {
-        get => _speed;
-        set
-        {
-            _speed = EnsureNonNegative(value);
-            EmitSignal(nameof(SpeedChanged), value);
-        }
-    }
-
-    public float Radius
-    {
-        get => _radius;
-        set
-        {
-            _radius = EnsureNonNegative(value);
-            EmitSignal(nameof(RadiusChanged), value);
-        }
-    }
-
-    public float Spread
-    {
-        get => _spread;
-        set
-        {
-            _spread = EnsureNonNegative(value);
-            EmitSignal(nameof(SpreadChanged), value);
-        }
-    }
-
-    public float JumpForce
-    {
-        get => _jumpForce;
-        set
-        {
-            _jumpForce = EnsureNonNegative(value);
-            EmitSignal(nameof(JumpForceChanged), value);
-        }
-    }
-    
-    public override void _Ready()
-    {
-        var resource = GD.Load<PlayerStatsResource>("res://resources/stats/PlayerStats.tres");
-        LoadStatsFromResource(resource);
-
-        //Dodać zwiększenie lvla w expManagerze
-        //akcja += ApplyStatsUp
-    }
-
-    private void LoadStatsFromResource(PlayerStatsResource res)
-    {
-        MaxHealth = res.MaxHealth;
-        Range = res.Range;
-        Damage = res.Damage;
-        Speed = res.Speed;
-        Radius = res.Radius;
-        Spread = res.Spread;
-        JumpForce = res.JumpForce;
-
-        GD.Print($"{_maxHealth} {_speed}");
-    }
-
-    private void SetStat(StatsType statsType, float amount)
-    {
-        switch(statsType)
-        {
-            case StatsType.Damage:
-                Damage = amount;
-                break;
-            case StatsType.Range:
-                Range = amount;
-                break;
-            case StatsType.MaxHealth:
-                MaxHealth = amount;
-                break;
-            case StatsType.Speed:
-                Speed = amount;
-                break;
-            case StatsType.Radius:
-                Radius = amount;
-                break;
-            case StatsType.Spread:
-                Spread = amount;
-                break;
-            case StatsType.JumpForce:
-                JumpForce = amount;
-                break;
+            GD.PrintErr("PlayerStatsManager: InitializeFromResource called with null resource.");
+            return;
         }
 
-        EmitStatsChangeSignal(statsType);
+        if (clearFirst)
+            _stats.Clear();
+
+        // BAZY (Base)
+        SetBaseStat(StatId.MaxHealth, res.MaxHealth);
+        SetBaseStat(StatId.MoveSpeed, res.MoveSpeed);
+        SetBaseStat(StatId.JumpForce, res.JumpForce);
+        SetBaseStat(StatId.JumpCount, res.JumpCount);
+
+        // MULTIPLIERY – jako base, bo to wartości wyjściowe
+        SetBaseStat(StatId.SpellDamageMultiplier, res.SpellDamageMultiplier);
+        SetBaseStat(StatId.SpellRangeMultiplier, res.SpellRangeMultiplier);
+        SetBaseStat(StatId.ProjectileSpeedMultiplier, res.ProjectileSpeedMultiplier);
+
+        // CooldownReduction – base (0..1)
+        SetBaseStat(StatId.CooldownReduction, res.CooldownReduction);
+
+        EmitSignal(SignalName.StatsChanged);
     }
 
-    private void AddStat(StatsType statsType, float amount)
+    private void EmitIfChanged(StatId id, float oldFinal)
     {
-        switch(statsType)
-        {
-            case StatsType.Damage:
-                Damage += amount;
-                break;
-            case StatsType.Range:
-                Range += amount;
-                break;
-            case StatsType.MaxHealth:
-                MaxHealth += amount;
-                break;
-            case StatsType.Speed:
-                Speed += amount;
-                break;
-            case StatsType.Radius:
-                Radius += amount;
-                break;
-            case StatsType.Spread:
-                Spread += amount;
-                break;
-            case StatsType.JumpForce:
-                JumpForce += amount;
-                break;
-        }
+        float now = GetStat(id);
+        if (Mathf.IsEqualApprox(oldFinal, now))
+            return;
 
-        EmitStatsChangeSignal(statsType);
+        EmitSignal(SignalName.StatChanged, (int)id, now, oldFinal);
+        EmitSignal(SignalName.StatsChanged);
     }
-
-    public void ApplyModifier(StatsType statsType, float modifier)
-    {
-        switch(statsType)
-        {
-            case StatsType.Damage:
-                Damage *= modifier;
-                break;
-            case StatsType.Range:
-                Range *= modifier;
-                break;
-            case StatsType.MaxHealth:
-                MaxHealth *= modifier;
-                break;
-            case StatsType.Speed:
-                Speed *= modifier;
-                break;
-            case StatsType.Radius:
-                Radius *= modifier;
-                break;
-            case StatsType.Spread:
-                Spread *= modifier;
-                break;
-            case StatsType.JumpForce:
-                JumpForce *= modifier;
-                break;
-        }
-
-        EmitStatsChangeSignal(statsType);
-    }
-
-    private void EmitStatsChangeSignal(StatsType type)
-    {
-        switch (type)
-        {    
-            case StatsType.Damage:
-                EmitSignal(nameof(DamageChanged), Damage);
-                break;
-            case StatsType.Range:
-                EmitSignal(nameof(RangeChanged), Range);
-                break;
-            case StatsType.MaxHealth:
-                EmitSignal(nameof(MaxHealthChanged), MaxHealth);
-                break;
-            case StatsType.Speed:
-                EmitSignal(nameof(SpeedChanged), Speed);
-                break;
-            case StatsType.Radius:
-                EmitSignal(nameof(RadiusChanged), Radius);
-                break;
-            case StatsType.Spread:
-                EmitSignal(nameof(SpreadChanged), Spread);
-                break;
-            case StatsType.JumpForce:
-                EmitSignal(nameof(JumpForceChanged), Spread);
-                break;
-            
-        }
-    }
-
-    private float EnsureNonNegative(float value)
-    {
-        return value > 0 ? value : 0;
-    }
-
-
-
-
-    
 }
