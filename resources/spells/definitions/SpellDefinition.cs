@@ -5,6 +5,9 @@ public abstract partial class SpellDefinition : Resource
 {
     [Export] public string Id { get; set; }
     [Export] public string DisplayName { get; set; }
+    [Export(PropertyHint.MultilineText)]
+    public string Description { get; set; } = "";
+    [Export] public Texture2D Icon { get; set; }
 
     [Export] public Element Element { get; set; }
 
@@ -12,7 +15,7 @@ public abstract partial class SpellDefinition : Resource
     [Export] public SpellBehaviourType BehaviourType { get; set; }
 
     [ExportGroup("Core Stats")]
-    [Export] public float BaseDamage { get; set; } = 10f;
+    [Export] public float DamageModifier { get; set; } = 1f;
     [Export] public float BaseRange { get; set; } = 20f;
     [Export] public float BaseCooldown { get; set; } = 1f;
     [Export] public float BaseManaCost { get; set; } = 0f;
@@ -26,6 +29,7 @@ public abstract partial class SpellDefinition : Resource
     public float RehitMaxDurationSeconds { get; set; } = 0f;
 
     [ExportGroup("Status Magnitudes")]
+    [Export] public ElementStatusProfile StatusProfile { get; set; } = null;
     [Export] public float BurningDotMultiplier = 1f; // FireExplosion np. 4.0
     [Export] public float SlowMultiplierBonus = 0f;  // jeśli chcesz różne slowy
     [Export] public float BleedDotMultiplier = 1f;

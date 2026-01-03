@@ -8,7 +8,7 @@ public partial class HealthComponent : Node
 
 	[Export] public float MaxHealth {get; set;} = 100f;
     [Export] public HurtboxComponent Hurtbox {get; set;}
-	public bool Enabled {get; set; } = true;
+	public bool Active {get; set; } = true;
 	private bool isCurrentlyOnFire = false;
 	private PackedScene floatingDamageScene;
     private float _currentHealth;
@@ -31,17 +31,15 @@ public partial class HealthComponent : Node
             else _currentHealth = value;
         }
     }
-	public bool isDead = false;
-	public Node3D enemy; //DO WYRZUCENIA
-	public Timer FireDamageTimer;
 	private float fireDamage = 0f;
+	protected Node3D _owner;
 
 	public override void _Ready()
 	{
+		_owner = GetOwner<Node3D>();
+
 		CurrentHealth = MaxHealth;
 		floatingDamageScene = GD.Load<PackedScene>("res://scenes/effects/floating_damage.tscn");
-
-		FireDamageTimer = GetNode<Timer>("FireDamageTimer");
 
         SubscribeEvents();
 	}
@@ -49,13 +47,11 @@ public partial class HealthComponent : Node
 	private void SubscribeEvents()
     {
         Hurtbox.Hit += OnHit;
-		FireDamageTimer.Timeout += OnFireDamageTimeout;
     }
 
 	private void UnsubscribeEvents()
     {
         Hurtbox.Hit -= OnHit;
-		FireDamageTimer.Timeout -= OnFireDamageTimeout;
     }
 
     public void OnHit(HitInfo hitInfo)
@@ -63,7 +59,7 @@ public partial class HealthComponent : Node
         if (hitInfo.Source is not IDamageSource damageSource)
             return;
         
-        float damage = damageSource.GetDamage();
+        float damage = hitInfo.FinalDamage;
 		damage *= hitInfo.DamageMultiplier;
 
 		Element damageType = damageSource.GetDamageType();
@@ -72,48 +68,52 @@ public partial class HealthComponent : Node
 		//np. damage = ApplyResistance(damage, damageType);
 
 		TakeDamage(damage);
-		ShowDamage(hitInfo.HitPosition, damage, new Color(1,0,0)); //KOLOR MOŻNA UZALEŻNIĆ OD ELEMENTU
+		ShowDamage(hitInfo.HitPosition, damage, ElementColors.GetColor(damageType)); //KOLOR MOŻNA UZALEŻNIĆ OD ELEMENTU
     }
 
-	// public void EnemyOnFire(bool OnFire){
-	// 	if (OnFire && !isCurrentlyOnFire){
-	// 		isCurrentlyOnFire = true;
-	// 		FireDamageTimer.Start();
-	// 		GD.Print("ON FIRE");
-			
-	// 	} else if (!OnFire) {
-	// 		isCurrentlyOnFire = false;
-	// 		FireDamageTimer.Stop();
-	// 		GD.Print("OFF FIRE");
-			
-	// 	}
-	// }
-	private void OnFireDamageTimeout(){
-		ShowDamage(enemy.GlobalPosition, 10, new Color(1, 0, 0));
-		TakeDamage(fireDamage);
+	public void ApplyStatusDamage(float damage, Element element)
+	{
+		if (!Active)
+			return;
+
+		TakeDamage(damage);
+		// switch (element)
+		// {
+		// 	case Element.Fire:
+		// 		ShowDamage(_owner.GlobalPosition, damage, new Color(1, 0.5f, 0));
+		// 		break;
+		// 	case Element.Earth:
+		// 		ShowDamage(_owner.GlobalPosition, damage, new Color(0.6f, 0.4f, 0.2f));
+		// 		break;
+		// 	case Element.Water:
+		// 		ShowDamage(_owner.GlobalPosition, damage, new Color(0, 0.5f, 1));
+		// 		break;
+		// 	case Element.Air:
+		// 		ShowDamage(_owner.GlobalPosition, damage, new Color(0.8f, 0.8f, 0.8f));
+		// 		break;
+		// 	// case Element.Lightning:
+		// 	// 	ShowDamage(enemy.GlobalPosition, damage, new Color(1, 1, 0));
+		// 	// 	break;
+		// 	case Element.Ice:
+		// 		ShowDamage(_owner.GlobalPosition, damage, new Color(0.5f, 0.8f, 1));
+		// 		break;
+		// 	default:
+		// 		ShowDamage(_owner.GlobalPosition, damage, new Color(1, 1, 1));
+		// 		break;
+		// }
+
+		// GD.Print($"Applying {damage} {element} status damage.");
+		ShowDamage(_owner.GlobalPosition, damage, ElementColors.GetStatusEffectColor(element));
 	}
 
-	public void EnemyOnFire(float damage){
-		if (!isCurrentlyOnFire){
-			isCurrentlyOnFire = true;
-			fireDamage = damage;
-			//DODAĆ DURATION I MOŻLIWOŚĆ JEGO ZMIANY
-			FireDamageTimer.Start();
-		}
-	}
-
-	private void EnemyOffFire(){
-		isCurrentlyOnFire = false;
-		FireDamageTimer.Stop();
-	}
-
-	public void TakeDamage(float damage)
+	public virtual void TakeDamage(float damage)
 	{
 		CurrentHealth -= damage;
 	}
 
-    public void Die()
+    public virtual void Die()
     {
+		Active = false;
 		UnsubscribeEvents();
         EmitSignal(nameof(EntityDied));
     }
@@ -123,9 +123,10 @@ public partial class HealthComponent : Node
 	}
 
 	public void ShowDamage(Vector3 position, float damage, Color color){
+		var damageInt = Mathf.CeilToInt(damage);
 		var floatingDamage = (FloatingDamage)floatingDamageScene.Instantiate();
 		GetTree().CurrentScene.AddChild(floatingDamage);
 		floatingDamage.GlobalPosition = position;
-		floatingDamage.ShowDamage(damage, color);
+		floatingDamage.ShowDamage(damageInt, color);
 	}
 }

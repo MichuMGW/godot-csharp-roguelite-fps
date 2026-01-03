@@ -2,6 +2,7 @@ using Godot;
 
 public class ProjectileSpellBehaviour : ISpellBehaviour
 {
+    private readonly RandomNumberGenerator rng = new RandomNumberGenerator();
     public void PerformCast(SpellCastContext ctx)
     {
         if (ctx.Instance.Definition is not ProjectileSpellDefinition def)
@@ -31,6 +32,11 @@ public class ProjectileSpellBehaviour : ISpellBehaviour
 
         projectile.LookAt(projectile.GlobalPosition + dir, Vector3.Up, true);
 
+        float rollRad = Mathf.DegToRad(rng.RandfRange(-180f, 180f));
+
+        Vector3 forward = -projectile.GlobalTransform.Basis.Z;
+        projectile.GlobalRotate(forward, rollRad);
+
         projectile.Configure(
             element: def.Element,
             damage: ctx.Stats.Damage,
@@ -54,6 +60,26 @@ public class ProjectileSpellBehaviour : ISpellBehaviour
             explosionLifetimeSeconds: ctx.Stats.ExplosionLifetimeSeconds
         );
 
+        var hitbox = projectile.GetNodeOrNull<HitboxComponent>("HitboxComponent");
+        if (hitbox != null)
+        {
+            hitbox.OneShot = !ctx.Stats.EnableRehit;
+            hitbox.RehitCooldownSeconds = ctx.Stats.RehitIntervalSeconds;
+
+            hitbox.CritChance = ctx.Stats.CritChance;
+            hitbox.CritMultiplier = ctx.Stats.CritMultiplier;
+            hitbox.StatusProfile = def.StatusProfile;          // dopnij do SpellDefinition
+            hitbox.BurningDotMultiplier = def.BurningDotMultiplier;    // dopnij do SpellDefinition
+            hitbox.BleedDotMultiplier = def.BleedDotMultiplier;
+            hitbox.SlowBonus = def.SlowMultiplierBonus;                // dopnij do SpellDefinition
+            hitbox.EarthBuildupPerHit = def.EarthBuildupPerHit;        // dopnij do SpellDefinition
+
+            hitbox.RehitCooldownSeconds = ctx.Stats.EnableRehit
+                ? Mathf.Max(0.05f, ctx.Stats.RehitIntervalSeconds)
+                : 0f;
+        }
+
+
         Vector3 velocity = dir * ctx.Stats.ProjectileSpeed;
         projectile.Launch(velocity);
     }
@@ -62,8 +88,6 @@ public class ProjectileSpellBehaviour : ISpellBehaviour
     {
         if (spreadDegrees <= 0f)
             return baseDir;
-
-        var rng = new RandomNumberGenerator();
 
         float yaw = Mathf.DegToRad(rng.RandfRange(-spreadDegrees, spreadDegrees));
         float pitch = Mathf.DegToRad(rng.RandfRange(-spreadDegrees, spreadDegrees));

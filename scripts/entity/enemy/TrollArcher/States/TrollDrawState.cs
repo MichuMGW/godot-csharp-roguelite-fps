@@ -3,11 +3,10 @@
 using System;
 using Godot;
 
-public class TrollDrawState : IState
+public class TrollDrawState : IState, IPhysicsUpdateState
 {
     private TrollArcher _owner;
     private bool _bodyLookAtTarget;
-    private bool _spineLookAtTarget;
 
     private Timer _bodyLookAtTimer;
     private Timer _drawEndTimer;
@@ -22,7 +21,6 @@ public class TrollDrawState : IState
         _owner.SetSpineLookAtPlayer();
 
         _bodyLookAtTarget = true;
-        _spineLookAtTarget = true;
 
         InitializeBodyLookAtTimer();
         InitializeDrawEndTimer();
@@ -87,6 +85,8 @@ public class TrollDrawState : IState
 
     public void Exit()
     {
+        _owner.Arrow.Visible = false;
+        
         _bodyLookAtTimer.QueueFree();
         _drawEndTimer.QueueFree();
         _aimLockTimer.QueueFree();
@@ -101,7 +101,4 @@ public class TrollDrawState : IState
         }
         _owner.UpdateSpineLookTarget((float)delta);
     }
-
-    public void Update(double delta){}
-
 }

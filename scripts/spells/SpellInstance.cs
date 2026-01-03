@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Godot;
 
 public class SpellInstance
 {
@@ -35,28 +36,35 @@ public class SpellInstance
     {
         var def = Definition;
 
+        float baseDmg = stats.GetStat(StatId.BaseDamage);
+        float dmgAdd = stats.GetStat(StatId.DamageAdd);
+        float dmgMult = stats.GetStat(StatId.DamageMultiplier);
+
+        float spellDmg = (baseDmg + dmgAdd) * dmgMult * Mathf.Max(0f, def.DamageModifier);
+
+        float rehitMult = stats.GetStat(StatId.RehitIntervalMultiplier);
+        if (rehitMult <= 0f) rehitMult = 1f;
+
         SpellCastStats result = new SpellCastStats
         {
-            Damage = def.BaseDamage * stats.GetStat(StatId.SpellDamageMultiplier),
-            Range = def.BaseRange * stats.GetStat(StatId.SpellRangeMultiplier),
+            Damage = spellDmg,
+            Range = def.BaseRange * stats.GetStat(StatId.RangeMultiplier),
             ManaCost = def.BaseManaCost,
 
-            ProjectileSpeed = 0f,
-            Radius = 0f,
-            Duration = 0f,
-            CritChance = 0f,
-            CritMultiplier = 0f,
-            PierceCount = 0f
-        };
+            CritChance = stats.GetStat(StatId.CritChance),
+            CritMultiplier = stats.GetStat(StatId.CritMultiplier),
 
-        result.EnableRehit = def.EnableRehit;
-        result.RehitIntervalSeconds = def.RehitIntervalSeconds;
+            PierceCount = stats.GetStat(StatId.Pierce),
+
+            EnableRehit = def.EnableRehit,
+            RehitIntervalSeconds = Mathf.Max(0.01f, def.RehitIntervalSeconds * rehitMult)
+        };
 
         // Typowe “dodatkowe staty” zależne od typu definicji
         if (def is ProjectileSpellDefinition proj)
         {
             result.ProjectileSpeed = proj.ProjectileSpeed * stats.GetStat(StatId.ProjectileSpeedMultiplier);
-            result.PierceCount = proj.ProjectilePierce + stats.GetStat(StatId.ProjectilePierce);
+            result.PierceCount += proj.ProjectilePierce;
 
             result.DieOnWorldHit = proj.DieOnWorldHit;
 
@@ -72,8 +80,8 @@ public class SpellInstance
         }
         else if (def is DashSpellDefinition dash)
         {
-            // możesz wykorzystać ProjectileSpeed jako “speed” w stats, żeby nie mnożyć pól
-            result.ProjectileSpeed = dash.DashSpeed;
+            result.Duration = dash.DashDuration;
+            result.Duration *= stats.GetStat(StatId.RangeMultiplier);
         }
         else if (def is AreaSpellDefinition area)
         {

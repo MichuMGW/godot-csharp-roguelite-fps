@@ -1,16 +1,23 @@
 public enum StatId
 {
     MaxHealth,
+    HealthRegen,
+    MaxMana,
+    ManaRegen,
     MoveSpeed,
-    SpellDamageMultiplier,
-    SpellRangeMultiplier,
-    ProjectileSpeedMultiplier,
-    CooldownReduction,
     JumpForce,
     JumpCount,
-    ProjectilePierce,
-
-    KnockbackResistance,   // 0.0 = brak, 1.0 = full immune
-    KnockbackMultiplier
-    // Dodać więcej wraz z rozwojem
+    KnockbackResistance,
+    KnockbackMultiplier,
+    BaseDamage,
+    DamageAdd,             // +5 dmg
+    DamageMultiplier,      // x1.10
+    RangeMultiplier,
+    Pierce,
+    CritChance,          // +0.15 = 15%
+    CritMultiplier,        // x1.5
+    ProjectileSpeedMultiplier,
+    CooldownReduction,
+    RehitIntervalMultiplier,    // x0.9 (szybciej tickuje)
+    ManaCostMultiplier,         // x0.8
 }

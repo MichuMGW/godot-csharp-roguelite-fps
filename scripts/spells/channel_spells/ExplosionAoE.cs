@@ -29,19 +29,38 @@ public partial class ExplosionAoE : Node3D
             var timer = GetTree().CreateTimer(LifeTime);
             timer.Timeout += () =>
             {
-                if (GodotObject.IsInstanceValid(this))
-                    QueueFree();
+                QueueFree();
             };
         }
     }
 
-    public void Configure(Element element, float damage, float radius)
+    public void Configure(
+        Element element,
+        float damage,
+        float radius,
+        float critChance,
+        float critMultiplier,
+        ElementStatusProfile statusProfile,
+        float burningDotMultiplier,
+        float bleedDotMultiplier,
+        float slowBonus,
+        float earthBuildupPerHit
+    )
     {
         if (hitbox != null)
         {
             hitbox.Damage = damage;
             hitbox.DamageType = element;
             hitbox.OneShot = true;
+
+            hitbox.CritChance = critChance;
+            hitbox.CritMultiplier = critMultiplier;
+
+            hitbox.StatusProfile = statusProfile;
+            hitbox.BurningDotMultiplier = burningDotMultiplier;
+            hitbox.BleedDotMultiplier = bleedDotMultiplier;
+            hitbox.SlowBonus = slowBonus;
+            hitbox.EarthBuildupPerHit = earthBuildupPerHit;
         }
 
         ApplyRadius(radius);
