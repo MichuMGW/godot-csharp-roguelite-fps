@@ -9,7 +9,5 @@ public partial class ItemDefinition : Resource
     [Export] public Texture2D Icon;
     [Export] public PackedScene PreviewScene;
     [Export] public ItemRarity Rarity = ItemRarity.Common;
-
-    // USUNIĘTO: { get; set; } oraz = new()
     [Export] public Godot.Collections.Array<StatModDefinition> StatModifier;
 }

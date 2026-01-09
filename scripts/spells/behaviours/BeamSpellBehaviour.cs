@@ -18,13 +18,11 @@ public class BeamSpellBehaviour : ISpellBehaviour, IHoldSpellBehaviour, ICancela
     {
         if (ctx.Instance.Definition is not BeamSpellDefinition def)
         {
-            GD.PrintErr($"BeamSpellBehaviour: SpellDefinition is not BeamSpellDefinition ({ctx.Instance.Definition.Id})");
             return;
         }
 
         if (def.EmitterScene == null)
         {
-            GD.PrintErr($"BeamSpellBehaviour: EmitterScene is null ({def.Id})");
             return;
         }
 
@@ -35,7 +33,6 @@ public class BeamSpellBehaviour : ISpellBehaviour, IHoldSpellBehaviour, ICancela
         Node node = def.EmitterScene.Instantiate();
         if (node is not BeamEmitter emitter)
         {
-            GD.PrintErr($"BeamSpellBehaviour: Scene root must be BeamEmitter. Got {node.GetType().Name} ({def.Id})");
             node.QueueFree();
             return;
         }
@@ -58,7 +55,7 @@ public class BeamSpellBehaviour : ISpellBehaviour, IHoldSpellBehaviour, ICancela
             burningDotMultiplier: def.BurningDotMultiplier,
             bleedDotMultiplier: def.BleedDotMultiplier,
             slowMultiplierBonus: def.SlowMultiplierBonus,
-            earthBuildupPerHit: def.EarthBuildupPerHit
+            stunBuildupPerHit: def.StunBuildupPerHit
         );
 
         emitter.Start();

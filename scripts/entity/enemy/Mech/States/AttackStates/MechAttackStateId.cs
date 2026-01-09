@@ -1,6 +1,6 @@
 public enum MechAttackStateId
 {
-    None,
+    Idle,
     GunBurst,
     RocketVolley
 }

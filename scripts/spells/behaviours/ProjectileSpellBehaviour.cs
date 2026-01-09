@@ -7,20 +7,17 @@ public class ProjectileSpellBehaviour : ISpellBehaviour
     {
         if (ctx.Instance.Definition is not ProjectileSpellDefinition def)
         {
-            GD.PrintErr($"ProjectileSpellBehaviour: SpellDefinition is not ProjectileSpellDefinition ({ctx.Instance.Definition.Id})");
             return;
         }
 
         if (def.ProjectileScene == null)
         {
-            GD.PrintErr($"ProjectileSpellBehaviour: ProjectileScene is null ({def.Id})");
             return;
         }
 
         Node node = def.ProjectileScene.Instantiate();
         if (node is not Projectile projectile)
         {
-            GD.PrintErr($"ProjectileSpellBehaviour: Scene root must be Projectile. Got {node.GetType().Name} ({def.Id})");
             node.QueueFree();
             return;
         }
@@ -32,9 +29,9 @@ public class ProjectileSpellBehaviour : ISpellBehaviour
 
         projectile.LookAt(projectile.GlobalPosition + dir, Vector3.Up, true);
 
-        float rollRad = Mathf.DegToRad(rng.RandfRange(-180f, 180f));
+        var rollRad = Mathf.DegToRad(rng.RandfRange(-180f, 180f));
 
-        Vector3 forward = -projectile.GlobalTransform.Basis.Z;
+        var forward = -projectile.GlobalTransform.Basis.Z;
         projectile.GlobalRotate(forward, rollRad);
 
         projectile.Configure(
@@ -51,7 +48,7 @@ public class ProjectileSpellBehaviour : ISpellBehaviour
             endScale: ctx.Stats.EndScale,
             scaleDurationSeconds: ctx.Stats.ScaleDurationSeconds,
 
-            explosionScene: def.ExplosionScene, // scena z definicji
+            explosionScene: def.ExplosionScene,
             explosionDamageMultiplier: ctx.Stats.ExplosionDamageMultiplier,
             explodeOnEnemy: ctx.Stats.ExplodeOnEnemyHit,
             explodeOnWorld: ctx.Stats.ExplodeOnWorldHit,
@@ -68,11 +65,11 @@ public class ProjectileSpellBehaviour : ISpellBehaviour
 
             hitbox.CritChance = ctx.Stats.CritChance;
             hitbox.CritMultiplier = ctx.Stats.CritMultiplier;
-            hitbox.StatusProfile = def.StatusProfile;          // dopnij do SpellDefinition
-            hitbox.BurningDotMultiplier = def.BurningDotMultiplier;    // dopnij do SpellDefinition
+            hitbox.StatusProfile = def.StatusProfile;
+            hitbox.BurningDotMultiplier = def.BurningDotMultiplier;
             hitbox.BleedDotMultiplier = def.BleedDotMultiplier;
-            hitbox.SlowBonus = def.SlowMultiplierBonus;                // dopnij do SpellDefinition
-            hitbox.EarthBuildupPerHit = def.EarthBuildupPerHit;        // dopnij do SpellDefinition
+            hitbox.SlowBonus = def.SlowMultiplierBonus;
+            hitbox.StunBuildupPerHit = def.StunBuildupPerHit;
 
             hitbox.RehitCooldownSeconds = ctx.Stats.EnableRehit
                 ? Mathf.Max(0.05f, ctx.Stats.RehitIntervalSeconds)

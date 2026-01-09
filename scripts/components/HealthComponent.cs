@@ -29,12 +29,15 @@ public partial class HealthComponent : Node
 	private float fireDamage = 0f;
 	protected Node3D _owner;
 
-    floatingDamageScene = GD.Load<PackedScene>("res://scenes/effects/floating_damage.tscn");
+    
 
 	public override void _Ready()
 	{
 		_owner = GetOwner<Node3D>();
 		CurrentHealth = MaxHealth;
+
+        floatingDamageScene = GD.Load<PackedScene>("res://scenes/effects/floating_damage.tscn");
+
         Hurtbox.Hit += OnHit;
 	}
 

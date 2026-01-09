@@ -25,7 +25,7 @@ public abstract partial class StateMachineEnemy<TStateId> : Enemy where TStateId
         CurrentState.Enter();
     }
 
-    protected override void TickBrain(float dt)
+    protected override void TickStateMachine(float dt)
     {
         _physicsState?.PhysicsUpdate(dt);
         _updateState?.Update(dt);

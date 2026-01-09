@@ -44,16 +44,11 @@ public partial class KnockbackComponent : Node
         if (Body == null) return;
         float dt = (float)delta;
 
-        // 1. Jeśli to pierwsze klatka impulsu
         if (!_appliedOnce && IsActive)
         {
-            // Nadpisujemy horyzontalną prędkość dla lepszego "czucia" uderzenia
-            // Zamiast dodawać (+=), lepiej ustawić lub mocno zblendować, 
-            // żeby pęd gracza nie sumował się dziwnie z odrzutem.
             Vector3 currentVel = Body.Velocity;
             Vector3 horizontalImpulse = new Vector3(_knockbackVelocity.X, 0, _knockbackVelocity.Z);
 
-            // Ograniczamy siłę, by nie "teleportować" gracza
             if (horizontalImpulse.Length() > MaxHorizontalSpeed)
                 horizontalImpulse = horizontalImpulse.Normalized() * MaxHorizontalSpeed;
 
@@ -61,24 +56,20 @@ public partial class KnockbackComponent : Node
             _appliedOnce = true;
         }
 
-        // 2. KLUCZ: Hamowanie (Damping) aplikowane bezpośrednio do Body.Velocity!
         if (_appliedOnce)
         {
             Vector3 v = Body.Velocity;
-            // Hamujemy tylko X i Z, grawitację zostawiamy ruchowi/stanowi
             float horizontalLength = new Vector2(v.X, v.Z).Length();
 
             if (horizontalLength > ActiveThreshold)
             {
-                // Wykładnicze hamowanie prędkości ciała
                 float speedDrop = Mathf.Exp(-Damping * dt);
                 Body.Velocity = new Vector3(v.X * speedDrop, v.Y, v.Z * speedDrop);
             }
             else
             {
-                // Zatrzymujemy całkowicie, gdy prędkość jest znikoma
                 Body.Velocity = new Vector3(0, v.Y, 0);
-                _knockbackVelocity = Vector3.Zero; // Reset wewnętrzny
+                _knockbackVelocity = Vector3.Zero;
             }
         }
     }

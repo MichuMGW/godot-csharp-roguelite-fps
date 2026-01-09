@@ -8,6 +8,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
     public PathfindComponent Pathfind { get; private set; }
     public HealthComponent Health { get; private set; }
     public HurtboxComponent Hurtbox { get; private set; }
+    public HitboxComponent Hitbox { get; private set; }
     public DifficultySnapshot CurrentDifficulty { get; private set; }
 
     public Node3D Player { get; private set; }
@@ -29,7 +30,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
     {
         FindNodes();
         SetupAliveCollisions();
-        WireSignals();
+        SubscribeEvents();
 
         LoadBaseStats();
         OnAfterReady();
@@ -43,7 +44,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
         if (!_alive) return;
         float dt = (float)delta;
 
-        TickBrain(dt);
+        TickStateMachine(dt);
 
         if (Pathfind != null)
             Pathfind.Tick(dt);
@@ -52,7 +53,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
             VelocityComp.Tick(dt);
     }
 
-    protected virtual void TickBrain(float dt) { }
+    protected virtual void TickStateMachine(float dt) { }
 
     protected virtual void FindNodes()
     {
@@ -83,7 +84,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
         CollisionLayer = PhysicsLayers.NONE;
     }
 
-    protected virtual void WireSignals()
+    protected virtual void SubscribeEvents()
     {
         if (Health != null)
             Health.EntityDied += OnDiedCommon;
@@ -109,7 +110,6 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
     {
         if (StatsResource == null)
         {
-            GD.PushError($"[{Name}] Missing StatsResource. Using defaults.");
             _baseMaxHealth = 100f;
             _baseMoveSpeed = 5f;
             _baseDamage = 10f;
@@ -125,7 +125,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
         MoveSpeed = _baseMoveSpeed;
         Damage = _baseDamage;
 
-        ApplyStatsToComponents(true);
+        ApplyStatsToComponents(initialLoad: true);
     }
 
     public void ApplyDifficulty(DifficultySnapshot difficulty)
@@ -134,7 +134,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
         MaxHealth = _baseMaxHealth * difficulty.HpMultiplier;
         MoveSpeed = _baseMoveSpeed * difficulty.MoveSpeedMultiplier;
         Damage = _baseDamage * difficulty.DamageMultiplier;
-        ApplyStatsToComponents(false);
+        ApplyStatsToComponents(initialLoad: false);
     }
 
     protected virtual void ApplyStatsToComponents(bool initialLoad)

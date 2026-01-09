@@ -79,6 +79,7 @@ public partial class PlayerManaComponent : Node
             EmitManaChanged();
             return;
         }
+
     }
 
     public bool CanAfford(float cost)

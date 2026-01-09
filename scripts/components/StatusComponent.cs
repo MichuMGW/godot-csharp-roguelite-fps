@@ -39,8 +39,8 @@ public partial class StatusComponent : Node
     private float _bleedBaseDotPerTick;
 
     // ---------------- Earth runtime ----------------
-    private float _earthBuildup;
-    private float _earthDecayPerSecond;
+    private float _stunBuildup;
+    private float _stunDecayPerSecond;
 
     private bool _stunned;
     private float _stunTimeLeft;
@@ -82,7 +82,7 @@ public partial class StatusComponent : Node
         TickBurning(dt);
         TickBleed(dt);
         TickSlow(dt);
-        TickEarth(dt);
+        TickStunBuildup(dt);
         TickStun(dt);
 
     }
@@ -96,17 +96,8 @@ public partial class StatusComponent : Node
         if (profile == null)
             return;
 
-        // Jeśli chcesz sanity-check: profil powinien pasować do elementu hita
-        // (czasem będziesz chciał w Dark mieć burning+slow, więc to tylko ostrzeżenie)
-        if (profile.Element != hit.Element && profile.Element != Element.None)
-        {
-            GD.PushWarning($"{Name}: Hit profile element {profile.Element} differs from hit element {hit.Element}.");
-        }
-
-        // Burning
         if (profile.EnableBurning)
         {
-            // U Ciebie: base dot per tick z profilu, skalowanie ze spella (np. Fireball vs Explosion)
             float dot = profile.BurningDotPerTick * Mathf.Max(0f, hit.BurningDotMultiplier);
 
             ApplyBurning(
@@ -116,11 +107,8 @@ public partial class StatusComponent : Node
             );
         }
 
-        // Slow
         if (profile.EnableSlow)
         {
-            // profile.SlowMultiplier = 0.3 oznacza -30%
-            // hit.SlowBonus (jeśli masz) możesz potraktować jako dodatkowy % slowa, np. +0.1 => -40%
             float slowPercent = Mathf.Clamp(profile.SlowMultiplier + hit.SlowBonus, 0f, 0.95f);
 
             ApplySlow(
@@ -129,7 +117,6 @@ public partial class StatusComponent : Node
             );
         }
 
-        // Bleed
         if (profile.EnableBleed)
         {
             float dot = profile.BleedDotPerTick * Mathf.Max(0f, hit.BleedDotMultiplier);
@@ -141,14 +128,13 @@ public partial class StatusComponent : Node
             );
         }
 
-        // Earth buildup + stun
-        if (profile.EnableEarthBuildup)
+        if (profile.EnableStunBuildup)
         {
-            ApplyEarthBuildup(
-                add: Mathf.Max(0f, hit.EarthBuildupPerHit),
-                threshold: Mathf.Max(1f, profile.EarthStunThreshold),
-                decayPerSec: Mathf.Max(0f, profile.EarthBuildupDecayPerSecond),
-                stunDuration: Mathf.Max(0.01f, profile.EarthStunDuration)
+            ApplyStunBuildup(
+                add: Mathf.Max(0f, hit.StunBuildupPerHit),
+                threshold: Mathf.Max(1f, profile.StunThreshold),
+                decayPerSec: Mathf.Max(0f, profile.StunBuildupDecayPerSecond),
+                stunDuration: Mathf.Max(0.01f, profile.StunDuration)
             );
         }
     }
@@ -160,15 +146,12 @@ public partial class StatusComponent : Node
         if (duration <= 0f || dotPerTick <= 0f)
             return;
 
-        // refresh duration, intensywność bierzemy max (FireExplosion > Fireball)
         SetProcess(true);
         _burning = true;
         _burningTimeLeft = Mathf.Max(_burningTimeLeft, duration);
         _burningTickRate = tickRate;
 
         _burningDotPerTick = Mathf.Max(_burningDotPerTick, dotPerTick);
-
-        // nie resetuję akumulatora ticków, żeby nie było “free tick” spam przy spam-hitach
     }
 
     private void TickBurning(float dt)
@@ -203,7 +186,6 @@ public partial class StatusComponent : Node
 
         SetProcess(true);
 
-        // start bleeding jeśli nie było
         if (!_bleeding)
         {
             _bleeding = true;
@@ -213,26 +195,19 @@ public partial class StatusComponent : Node
             _bleedTickRate = tickRate;
         }
 
-        // + stack
         _bleedStacks = Mathf.Clamp(_bleedStacks + 1, 1, BleedMaxStacks);
-
-        // bazowy dot dla 1 stacka:
-        // 1) jeśli chcesz żeby “mocniejszy bleed” podmieniał bazę -> max
         _bleedBaseDotPerTick = Mathf.Max(_bleedBaseDotPerTick, dotPerTick);
 
-        // tick rate: opcjonalnie bierzemy najszybszy
         if (BleedUseFastestTickRate)
             _bleedTickRate = Mathf.Min(_bleedTickRate, tickRate);
         else
             _bleedTickRate = tickRate;
 
-        // czas: refresh albo max
         if (BleedRefreshDurationOnStack)
             _bleedTimeLeft = duration;
         else
             _bleedTimeLeft = Mathf.Max(_bleedTimeLeft, duration);
 
-        // wynikowy dot per tick = baza * stacki
         _bleedDotPerTick = _bleedBaseDotPerTick * _bleedStacks;
     }
 
@@ -251,7 +226,6 @@ public partial class StatusComponent : Node
             _bleedBaseDotPerTick = 0f;
             _bleedStacks = 0;
 
-            // nie wyłączaj process “w ciemno”, bo mogą działać inne statusy
             TryDisableProcessIfNoActiveStatuses();
             return;
         }
@@ -276,10 +250,8 @@ public partial class StatusComponent : Node
         _slowed = true;
         _slowTimeLeft = Mathf.Max(_slowTimeLeft, duration);
 
-        // bierzemy “najgorszy” slow (większy %)
         _slowPercent = Mathf.Max(_slowPercent, slowPercent);
 
-        // speed multiplier = 1 - slowPercent
         _speedMultiplier = Mathf.Clamp(1f - _slowPercent, 0.05f, 1f);
         ApplyMoveSpeedMultiplier(_speedMultiplier);
     }
@@ -302,40 +274,37 @@ public partial class StatusComponent : Node
 
     // ====================== Earth buildup ======================
 
-    private void ApplyEarthBuildup(float add, float threshold, float decayPerSec, float stunDuration)
+    private void ApplyStunBuildup(float add, float threshold, float decayPerSec, float stunDuration)
     {
         if (add <= 0f)
             return;
 
         SetProcess(true);
-        _earthBuildup += add;
+        _stunBuildup += add;
 
-        // decay ustawiamy “na czas trwania buildupu”
-        _earthDecayPerSecond = Mathf.Max(_earthDecayPerSecond, decayPerSec);
+        _stunDecayPerSecond = Mathf.Max(_stunDecayPerSecond, decayPerSec);
 
-        if (!_stunned && _earthBuildup >= threshold)
+        if (!_stunned && _stunBuildup >= threshold)
         {
             ApplyStun(stunDuration);
 
-            // po stunie reset buildupu (najczyściej)
-            _earthBuildup = 0f;
+            _stunBuildup = 0f;
         }
     }
 
-    private void TickEarth(float dt)
+    private void TickStunBuildup(float dt)
     {
-        if (_earthBuildup <= 0f)
+        if (_stunBuildup <= 0f)
             return;
 
-        if (_earthDecayPerSecond <= 0f)
+        if (_stunDecayPerSecond <= 0f)
             return;
 
-        _earthBuildup = Mathf.Max(0f, _earthBuildup - _earthDecayPerSecond * dt);
+        _stunBuildup = Mathf.Max(0f, _stunBuildup - _stunDecayPerSecond * dt);
 
-        // jak spadnie do zera, czyścimy decay, bo inaczej zostaje “na zawsze”
-        if (_earthBuildup <= 0f)
+        if (_stunBuildup <= 0f)
         {
-            _earthDecayPerSecond = 0f;
+            _stunDecayPerSecond = 0f;
             TryDisableProcessIfNoActiveStatuses();
         }
     }
@@ -370,7 +339,7 @@ public partial class StatusComponent : Node
             _bleeding ||
             _slowed ||
             _stunned ||
-            _earthBuildup > 0f;
+            _stunBuildup > 0f;
 
         if (!any)
             SetProcess(false);

@@ -23,7 +23,6 @@ public partial class SkeletalHurtboxComponent : HurtboxComponent
         var armature = GetParent().GetNodeOrNull<Skeleton3D>(_armaturePath);
         if (armature == null)
         {
-            GD.PushError($"{Name}: Nie znaleziono Skeleton3D pod ścieżką '{_armaturePath}'.");
             return;
         }
 
@@ -38,11 +37,6 @@ public partial class SkeletalHurtboxComponent : HurtboxComponent
                     _hurtboxes.Add(hurtboxArea);
                 }
             }
-        }
-
-        if (_hurtboxes.Count == 0)
-        {
-            GD.PushWarning($"{Name}: Nie znaleziono żadnych HurtboxArea w BoneAttachmentach.");
         }
     }
 

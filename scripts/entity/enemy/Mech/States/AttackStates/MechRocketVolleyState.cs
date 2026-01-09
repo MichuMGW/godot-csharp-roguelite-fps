@@ -31,7 +31,7 @@ public class MechRocketVolleyState : IState, IUpdateState
     {
         if (_rocketsLeft <= 0)
         {
-            _owner.ChangeAttackState(MechAttackStateId.None);
+            _owner.ChangeAttackState(MechAttackStateId.Idle);
             return;
         }
 

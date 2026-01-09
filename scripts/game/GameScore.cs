@@ -3,7 +3,7 @@ using System;
 
 public partial class GameScore : Node
 {
-    public sealed class Result
+    public sealed class GameResult
     {
         public RunEndReason Reason;
         public string Difficulty;
@@ -32,7 +32,7 @@ public partial class GameScore : Node
     private ItemInventory _inventory;
 
     private bool _frozen = false;
-    public Result LastResult { get; private set; }
+    public GameResult LastResult { get; private set; }
 
     public override void _Ready()
     {
@@ -101,7 +101,6 @@ public partial class GameScore : Node
             return;
         }
 
-        // boss phase: total == 0
         _bossElapsed = elapsed;
     }
 
@@ -134,17 +133,14 @@ public partial class GameScore : Node
 
         if (reason == RunEndReason.RunFinished)
         {
-            // ukończone: baza + boss
             runTimeSeconds = Mathf.Max(0f, _normalTotal) + Mathf.Max(0f, _bossElapsed);
         }
         else
         {
-            // śmierć: NIE dodajemy match duration
-            // jeśli boss się zaczął, pokazuj tylko czas bossa, inaczej normal elapsed
             runTimeSeconds = (_bossElapsed > 0.0001f) ? Mathf.Max(0f, _bossElapsed) : Mathf.Max(0f, _normalElapsed);
         }
 
-        LastResult = new Result
+        LastResult = new GameResult
         {
             Reason = reason,
             Difficulty = _difficulty,
@@ -157,7 +153,7 @@ public partial class GameScore : Node
     }
 
 
-    public Result GetLiveSnapshot(RunEndReason reasonGuess = RunEndReason.RunFinished)
+    public GameResult GetScoreSnapshot(RunEndReason reason = RunEndReason.RunFinished)
     {
         int items = 0;
         if (_inventory != null)
@@ -167,13 +163,13 @@ public partial class GameScore : Node
         }
 
         float runTimeSeconds =
-            reasonGuess == RunEndReason.RunFinished
+            reason == RunEndReason.RunFinished
                 ? Mathf.Max(0f, _normalTotal) + Mathf.Max(0f, _bossElapsed)
                 : (_bossElapsed > 0.0001f ? Mathf.Max(0f, _bossElapsed) : Mathf.Max(0f, _normalElapsed));
 
-        return new Result
+        return new GameResult
         {
-            Reason = reasonGuess,
+            Reason = reason,
             Difficulty = _runConfig?.GetDifficultyName() ?? _difficulty,
             EnemiesKilled = _enemyKilled,
             GoldCollected = _gold != null ? _gold.GoldGained : _goldCollected,

@@ -30,8 +30,6 @@ public abstract partial class HurtboxComponent : Node
 
         var rootTarget = GetOwner<Node3D>();
 
-        GD.Print($"[Hurtbox] Checking Hit: Source={source.GetHashCode()}, Target={rootTarget?.GetHashCode()}");
-
         if (rootTarget == null)
             return;
 
@@ -48,14 +46,12 @@ public abstract partial class HurtboxComponent : Node
         bool isCrit = false;
         float finalDamage = baseDamage;
 
-        // LOSOWANIE CRITA – per HIT
         if (critChance > 0f && GD.Randf() < critChance)
         {
             isCrit = true;
             finalDamage *= Mathf.Max(1f, critMultiplier);
         }
 
-        // hurtbox multiplier (np. headshot)
         finalDamage *= hurtbox.DamageMultiplier;
 
         var hitInfo = new HitInfo(source, hurtbox.HurtboxType, hurtbox.DamageMultiplier, hitPosition)
@@ -69,7 +65,7 @@ public abstract partial class HurtboxComponent : Node
             BurningDotMultiplier = damageSource.GetBurningDotMultiplier(),
             BleedDotMultiplier = damageSource.GetBleedDotMultiplier(),
             SlowBonus = damageSource.GetSlowBonus(),
-            EarthBuildupPerHit = damageSource.GetEarthBuildupPerHit(),
+            StunBuildupPerHit = damageSource.GetStunBuildupPerHit(),
         };
 
         EmitSignal(nameof(Hit), hitInfo);

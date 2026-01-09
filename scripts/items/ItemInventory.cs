@@ -35,14 +35,6 @@ public partial class ItemInventory : Node
         _events.ChestRewardResolved -= OnChestRewardResolved;
     }
 
-    private void OnChestRewardResolved(ChestRewardContext ctx, bool claimed)
-    {
-        if (!claimed) return;
-        if (ctx?.Item == null) return;
-
-        AddItem(ctx.Item);
-    }
-
     public IReadOnlyDictionary<string, int> GetCountsByItemId()
     {
         var dict = new Dictionary<string, int>(_stacks.Count);
@@ -57,12 +49,19 @@ public partial class ItemInventory : Node
             yield return (s.Def, s.Count);
     }
 
+    private void OnChestRewardResolved(ChestRewardContext ctx, bool claimed)
+    {
+        if (!claimed) return;
+        if (ctx?.Item == null) return;
+
+        AddItem(ctx.Item);
+    }
+
     public bool AddItem(ItemDefinition item)
     {
         if (item == null) return false;
         if (string.IsNullOrWhiteSpace(item.Id))
         {
-            GD.PrintErr("RunInventory.AddItem: item has empty Id.");
             return false;
         }
 
@@ -75,7 +74,7 @@ public partial class ItemInventory : Node
         stack.Count += 1;
 
         RebuildStatSources();
-        EmitSignal(SignalName.InventoryChanged);
+        EmitSignal(nameof(InventoryChanged));
         return true;
     }
 
@@ -91,8 +90,6 @@ public partial class ItemInventory : Node
         if (_stats == null)
             return;
 
-        // Usuń poprzednie źródła itemowe i ustaw od nowa.
-        // Najprościej: trzymasz prefix.
         _stats.ClearSourcesByPrefix("item:");
 
         foreach (var stack in _stacks.Values)

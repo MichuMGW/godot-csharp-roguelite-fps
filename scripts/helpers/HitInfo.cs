@@ -16,7 +16,7 @@ public partial class HitInfo : Node
     public float BurningDotMultiplier { get; set; } = 1f;
     public float BleedDotMultiplier { get; set; } = 1f;
     public float SlowBonus { get; set; } = 0f;
-    public float EarthBuildupPerHit { get; set; } = 0f;
+    public float StunBuildupPerHit { get; set; } = 0f;
 
     public HitInfo() { }
 

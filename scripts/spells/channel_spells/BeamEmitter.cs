@@ -88,7 +88,7 @@ public partial class BeamEmitter : Node3D
         float burningDotMultiplier = 1f,
         float bleedDotMultiplier = 1f,
         float slowMultiplierBonus = 1f,
-        float earthBuildupPerHit = 0f
+        float stunBuildupPerHit = 0f
     )
     {
         _tickRate = Mathf.Max(0.01f, tickRateSeconds);
@@ -108,7 +108,7 @@ public partial class BeamEmitter : Node3D
             _hitbox.BurningDotMultiplier = burningDotMultiplier;    // dopnij do SpellDefinition
             _hitbox.BleedDotMultiplier = bleedDotMultiplier;
             _hitbox.SlowBonus = slowMultiplierBonus;                // dopnij do SpellDefinition
-            _hitbox.EarthBuildupPerHit = earthBuildupPerHit;        // dopnij do SpellDefinition
+            _hitbox.StunBuildupPerHit = stunBuildupPerHit;        // dopnij do SpellDefinition
         }
 
         UpdateWidth(_beamWidth);

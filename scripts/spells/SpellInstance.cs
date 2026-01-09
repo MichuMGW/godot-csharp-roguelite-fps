@@ -5,21 +5,14 @@ using Godot;
 public class SpellInstance
 {
     public SpellDefinition Definition { get; }
-    public int Level { get; private set; }
     public float CurrentCooldown { get; private set; }
 
-    private readonly List<ISpellModifier> _modifiers = new();
-
-    public SpellInstance(SpellDefinition def, int level = 1)
+    public SpellInstance(SpellDefinition def)
     {
         Definition = def;
-        Level = level;
     }
 
     public bool CanCast => CurrentCooldown <= 0f;
-
-    public void AddModifier(ISpellModifier modifier) => _modifiers.Add(modifier);
-    public void RemoveModifier(string id) => _modifiers.RemoveAll(m => m.Id == id);
 
     public void TickCooldown(float dt)
     {
@@ -60,7 +53,6 @@ public class SpellInstance
             RehitIntervalSeconds = Mathf.Max(0.01f, def.RehitIntervalSeconds * rehitMult)
         };
 
-        // Typowe “dodatkowe staty” zależne od typu definicji
         if (def is ProjectileSpellDefinition proj)
         {
             result.ProjectileSpeed = proj.ProjectileSpeed * stats.GetStat(StatId.ProjectileSpeedMultiplier);
@@ -92,13 +84,6 @@ public class SpellInstance
         {
             result.Duration = beam.BaseDuration;
         }
-        else if (def is ExplosionSpellDefinition)
-        {
-            // radius/duration rosną w trakcie hold, więc tu nic nie musisz
-        }
-
-        foreach (var mod in _modifiers)
-            result = mod.Modify(result, this, stats);
 
         return result;
     }

@@ -109,14 +109,14 @@ public partial class Mech : Enemy
 
         // start jak wcześniej
         ChangeMoveState(MechMoveStateId.ChasePlayer);
-        ChangeAttackState(MechAttackStateId.None);
+        ChangeAttackState(MechAttackStateId.Idle);
         ChangeSuperState(MechSuperStateId.Normal);
 
         var health = Health as BossHealthComponent;
         _events.EmitBossSpawned(this, health, "Mech");
     }
 
-    protected override void TickBrain(float dt)
+    protected override void TickStateMachine(float dt)
     {
         // cooldowny (wcześniej były w _Process)
         _currentGunCooldown = MathF.Max(0, _currentGunCooldown - dt);
@@ -203,7 +203,7 @@ public partial class Mech : Enemy
 
         var attackStates = new Dictionary<MechAttackStateId, IState>
         {
-            { MechAttackStateId.None, new MechAttackNoneState(this) },
+            { MechAttackStateId.Idle, new MechAttackIdleState(this) },
             { MechAttackStateId.GunBurst, new MechGunBurstState(this) },
             { MechAttackStateId.RocketVolley, new MechRocketVolleyState(this) }
         };
@@ -219,7 +219,7 @@ public partial class Mech : Enemy
 
         // reset regionów przy wejściu w special/dead, jak miałeś
         ChangeMoveState(MechMoveStateId.Idle);
-        ChangeAttackState(MechAttackStateId.None);
+        ChangeAttackState(MechAttackStateId.Idle);
 
         ResetUpperBody();
 
@@ -273,7 +273,7 @@ public partial class Mech : Enemy
         else
             ChangeMoveState(MechMoveStateId.CirclePlayer);
 
-        if (CurrentAttackStateId == MechAttackStateId.None)
+        if (CurrentAttackStateId == MechAttackStateId.Idle)
         {
             TryTriggerSpecials();
 
@@ -303,8 +303,6 @@ public partial class Mech : Enemy
         else if (_currentSpinCooldown <= 0 && roll < 0.20f)
             ChangeSuperState(MechSuperStateId.SpinSpecial);
     }
-
-    // ===================== Projectiles =====================
 
     public void SpawnGunProjectile(bool fromLeft)
     {

@@ -117,11 +117,11 @@ public partial class EndGameOverlay : CanvasLayer
         if (scoreNode == null)
             scoreNode = GetTree().CurrentScene?.GetNodeOrNull<GameScore>("GameScore");
 
-        GameScore.Result r = scoreNode?.LastResult;
+        GameScore.GameResult r = scoreNode?.LastResult;
 
         // fallback, jeśli LastResult nie ustawione (bo ktoś zapomniał FreezeScore)
         if (r == null && scoreNode != null)
-            r = scoreNode.GetLiveSnapshot();
+            r = scoreNode.GetScoreSnapshot();
 
         // jak nie ma nic, to chociaż nie wywal gry
         if (r == null)
@@ -160,10 +160,8 @@ public partial class EndGameOverlay : CanvasLayer
         SetLabel(_finalScore, final.ToString());
     }
 
-    private int CalculateFinalScore(GameScore.Result r)
+    private int CalculateFinalScore(GameScore.GameResult r)
     {
-        // To jest „sensowny default”, a nie religia.
-        // Jak będziesz chciał, dorobimy mnożniki per difficulty itd.
         int score =
             r.EnemiesKilled * 10 +
             r.GoldCollected * 1 +

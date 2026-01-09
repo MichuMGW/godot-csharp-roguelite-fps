@@ -12,11 +12,6 @@ public partial class ExperienceDropComponent : Node
     {
         _owner = GetParent() as Enemy;
         _health = _owner.GetNodeOrNull<HealthComponent>("HealthComponent");
-        if (_health == null)
-        {
-            GD.PushWarning("[ExperienceDropComponent] Missing HealthComponent on parent.");
-            return;
-        }
 
         _health.EntityDied += OnDied;
     }
@@ -28,7 +23,6 @@ public partial class ExperienceDropComponent : Node
         var pickup = PickupScene.Instantiate() as ExperiencePickup;
         GetTree().CurrentScene.AddChild(pickup);
 
-        // parent powinien być Node3D / CharacterBody3D
         if (GetParent() is Node3D parent3D)
         {
             var position = parent3D.GlobalPosition;
@@ -36,6 +30,6 @@ public partial class ExperienceDropComponent : Node
             pickup.GlobalPosition = position;
         }
 
-        pickup.Amount = Mathf.RoundToInt(BaseXp * _owner.CurrentDifficulty.EnemyLevel); // tu później difficulty scaling
+        pickup.Amount = Mathf.RoundToInt(BaseXp * _owner.CurrentDifficulty.EnemyLevel);
     }
 }

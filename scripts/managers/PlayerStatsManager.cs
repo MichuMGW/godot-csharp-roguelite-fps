@@ -70,7 +70,6 @@ public partial class PlayerStatsManager : Node
     {
         if (res == null)
         {
-            GD.PrintErr("PlayerStatsManager: InitializeFromResource called with null.");
             return;
         }
 
@@ -100,7 +99,6 @@ public partial class PlayerStatsManager : Node
 
     private void RecomputeAll()
     {
-        // Zbierz wszystkie staty, które mogą istnieć: base + sources
         var touched = new HashSet<StatId>();
         foreach (var k in _base.Keys) touched.Add(k);
         foreach (var s in _sources.Values)
@@ -134,12 +132,12 @@ public partial class PlayerStatsManager : Node
             if (!Mathf.IsEqualApprox(old, now))
             {
                 anyChanged = true;
-                EmitSignal(SignalName.StatChanged, (int)id, now, old);
+                EmitSignal(nameof(StatChanged), (int)id, now, old);
             }
         }
 
         if (anyChanged)
-            EmitSignal(SignalName.StatsChanged);
+            EmitSignal(nameof(StatsChanged));
     }
 
     private float GetDefault(StatId id)

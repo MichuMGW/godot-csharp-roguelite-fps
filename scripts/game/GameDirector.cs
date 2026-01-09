@@ -122,15 +122,13 @@ public partial class GameDirector : Node
         if (!_isRunning)
             return;
 
-        // --- BOSS TIMER MODE: count up ---
         if (_bossPhase)
         {
             _bossElapsed += (float)delta;
-            _events?.EmitRunTimeUpdated(_bossElapsed, 0f); // total nie ma znaczenia w boss mode
-            return; // nie spawnujemy normalnych fal w boss phase
+            _events?.EmitRunTimeUpdated(_bossElapsed, 0f);
+            return;
         }
 
-        // --- NORMAL MODE: countdown ---
         _elapsed += (float)delta;
         _events?.EmitRunTimeUpdated(_elapsed, MatchDurationSeconds);
 

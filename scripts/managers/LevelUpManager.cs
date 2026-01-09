@@ -68,10 +68,7 @@ public partial class LevelUpManager : Node
     {
         if (picked == null || picked.Upgrade == null) return;
 
-        // tracking “stacks”
         AddStack(picked.Upgrade);
-
-        // aplikuj staty z rarity jako osobny sourceId (żeby mythic faktycznie był mythic)
         ApplyOfferOnce(picked);
     }
 

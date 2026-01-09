@@ -18,9 +18,6 @@ public partial class CameraMovement : Node
             Input.MouseMode = Input.MouseModeEnum.Visible;
         }
 
-
-
-        // Camera rotation
         if (@event is InputEventMouseMotion mouseMotion && Input.MouseMode == Input.MouseModeEnum.Captured)
         {
             float headRotationX = head.Rotation.X + Mathf.DegToRad(mouseMotion.Relative.Y * -sensitivity);

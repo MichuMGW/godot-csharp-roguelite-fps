@@ -39,7 +39,6 @@ public partial class PlayerHealthComponent : Node
 
             float newValue = Mathf.Clamp(value, 0f, MaxHealth);
 
-            // nie spamuj sygnałem jak nic się nie zmieniło
             if (Mathf.IsEqualApprox(newValue, _currentHealth))
                 return;
 
@@ -97,22 +96,19 @@ public partial class PlayerHealthComponent : Node
     }
 
     private void Die()
-{
-    if (_isDead) return;
-    _isDead = true;
+    {
+        if (_isDead) return;
+        _isDead = true;
 
-    SetProcess(false);
+        SetProcess(false);
 
-    if (Hurtbox != null)
-        Hurtbox.Hit -= OnHit;
+        if (Hurtbox != null)
+            Hurtbox.Hit -= OnHit;
 
-    _currentHealth = 0f;
-    EmitSignal(nameof(CurrentHealthChanged));
+        EmitSignal(nameof(PlayerDied));
 
-    EmitSignal(nameof(PlayerDied));
-
-    var events = GetTree().Root.GetNodeOrNull<GameEvents>("GameEvents");
-    events.CallDeferred(nameof(GameEvents.EndRun), (int)RunEndReason.PlayerDied);
+        var events = GetTree().Root.GetNodeOrNull<GameEvents>("GameEvents");
+        events.CallDeferred(nameof(GameEvents.EndRun), (int)RunEndReason.PlayerDied);
     }
 
 

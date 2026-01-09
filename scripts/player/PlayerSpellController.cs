@@ -138,7 +138,7 @@ public partial class PlayerSpellController : Node
     public bool BeginCast(SpellSlot slot)
     {
         if (_activeSessions.ContainsKey(slot))
-            return true; // już trwa
+            return true;
 
         var inst = GetInstance(slot);
         if (inst == null) return false;
@@ -146,11 +146,9 @@ public partial class PlayerSpellController : Node
         var def = inst.Definition;
 
         
-        // Charge: jeśli na cooldownie, nie startuj (żadnych indicatorów)
         if ((def.CastMode == SpellCastMode.ChargeRelease || def.CastMode == SpellCastMode.ChargeAuto) && !inst.CanCast)
             return false;
 
-        // Dla reszty: jeśli ma cooldown i tryb wymaga instant castu od razu, po prostu fail
         if (!inst.CanCast && def.CastMode == SpellCastMode.Instant)
             return false;
 
@@ -173,15 +171,13 @@ public partial class PlayerSpellController : Node
         var session = new SpellCastSession(slot, inst, ctx, behaviour);
         _activeSessions[slot] = session;
 
-        // Press hook (indicator, start beama, itd.)
         session.Press?.OnPressed(session.Ctx);
 
-        // Start logic per castmode
         switch (def.CastMode)
         {
             case SpellCastMode.Instant:
-                TryPerformCast(session, applyCooldown: true);
-                EndCast(slot, CastEndReason.Released);
+                if(TryPerformCast(session, applyCooldown: true))
+                    EndCast(slot, CastEndReason.Casted);
                 break;
 
             case SpellCastMode.HoldRepeatCooldown:
@@ -189,13 +185,7 @@ public partial class PlayerSpellController : Node
                 break;
 
             case SpellCastMode.Channel:
-                // start bez cooldownu, tickowany w UpdateCast
                 TryPerformCast(session, applyCooldown: false);
-                break;
-
-            case SpellCastMode.ChargeRelease:
-            case SpellCastMode.ChargeAuto:
-                // tylko indicator + update; cast w release/auto
                 break;
         }
 
@@ -207,19 +197,13 @@ public partial class PlayerSpellController : Node
         if (!_activeSessions.TryGetValue(slot, out var s))
             return;
 
-        // Aktualizacja aim tylko gdy sesja trwa
         RefreshAim(ref s.Ctx);
 
         switch (s.Def.CastMode)
         {
             case SpellCastMode.HoldRepeatCooldown:
-                var canCast = TryPerformCast(s, applyCooldown: true);
-                if (canCast)
+                if (TryPerformCast(s, applyCooldown: true))
                     EmitSignal(nameof(SpellRecasted), (int)slot);
-                break;
-
-            case SpellCastMode.Instant:
-                // nic; instant powinien się skończyć w BeginCast
                 break;
 
             case SpellCastMode.Channel:
@@ -292,16 +276,13 @@ public partial class PlayerSpellController : Node
         float chargeTime = GetChargeTimeOrFallback(s.Def);
 
         s.ChargeTimeAcc += dt;
-        s.Ctx.Charge01 = Mathf.Clamp(s.ChargeTimeAcc / Mathf.Max(0.01f, chargeTime), 0f, 1f);
 
-        // indicator/update
         s.Hold?.OnHeld(s.Ctx, dt);
 
         if (autoCast && !s.HasAutoCasted && s.ChargeTimeAcc >= chargeTime)
         {
             ReleaseCharge(s);
             s.HasAutoCasted = true;
-            // autocast kończy sesję automatycznie, bo i tak “puściłeś” w sensie gameplay
             EndCast(s.Slot, CastEndReason.Released);
         }
     }
@@ -338,7 +319,6 @@ public partial class PlayerSpellController : Node
             float manaCost = GetManaCost(s.Def);
             if (!_mana.TrySpend(manaCost, showError: true))
             {
-                _mana.ShowNotEnoughMana();
                 return false;
             }
 
@@ -391,7 +371,6 @@ public partial class PlayerSpellController : Node
             Slot = slot,
             Instance = instance,
             Stats = stats,
-            Charge01 = 0f
         };
     }
 
@@ -399,7 +378,6 @@ public partial class PlayerSpellController : Node
     {
         if (ctx.Muzzle == null) return;
         ctx.Direction = GetAimDirection(ctx.Muzzle);
-        // Stats zwykle nie zmieniasz co frame. Jeśli masz upgrade podczas castu, przebuduj tylko wtedy eventem.
     }
 
     private Vector3 GetAimDirection(Node3D muzzle)
@@ -409,7 +387,6 @@ public partial class PlayerSpellController : Node
             var hit = _raycast.GetCollisionPoint();
             var toHit = hit - muzzle.GlobalPosition;
 
-            // sensownie: "dalej niż 3" -> squared > 9
             if (toHit.LengthSquared() > 9f)
                 return toHit.Normalized();
         }

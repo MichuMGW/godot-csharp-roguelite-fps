@@ -214,7 +214,6 @@ public partial class ChestRewardOverlay : CanvasLayer
 
         _events?.ResolveChestReward(_ctx, claimed);
 
-        // sprzątanie UI jak u ciebie
         QueueFree();
     }
 

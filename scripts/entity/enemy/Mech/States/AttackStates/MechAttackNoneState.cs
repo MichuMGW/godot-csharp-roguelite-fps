@@ -1,10 +1,10 @@
 using Godot;
 
-public class MechAttackNoneState : IState
+public class MechAttackIdleState : IState
 {
     private readonly Mech _owner;
 
-    public MechAttackNoneState(Mech owner)
+    public MechAttackIdleState(Mech owner)
     {
         _owner = owner;
     }

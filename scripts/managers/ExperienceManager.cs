@@ -16,7 +16,7 @@ public partial class ExperienceManager : Node
     {
         CurrentExp = 0;
         CurrentLevel = 1;
-        EmitSignal(SignalName.ExpChanged, CurrentExp, CurrentLevel, ExpToNext);
+        EmitSignal(nameof(ExpChanged), CurrentExp, CurrentLevel, ExpToNext);
     }
 
     public void AddExp(int amount)
@@ -29,9 +29,9 @@ public partial class ExperienceManager : Node
         {
             CurrentExp -= ExpToNext;
             CurrentLevel++;
-            EmitSignal(SignalName.LevelUp, CurrentLevel);
+            EmitSignal(nameof(LevelUp), CurrentLevel);
         }
 
-        EmitSignal(SignalName.ExpChanged, CurrentExp, CurrentLevel, ExpToNext);
+        EmitSignal(nameof(ExpChanged), CurrentExp, CurrentLevel, ExpToNext);
     }
 }

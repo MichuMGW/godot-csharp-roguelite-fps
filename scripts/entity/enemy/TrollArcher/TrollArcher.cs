@@ -46,7 +46,6 @@ public partial class TrollArcher : StateMachineEnemy<TrollStateId>
 
         States = new()
         {
-            { TrollStateId.Idle, new TrollIdleState(this) },
             { TrollStateId.Chase, new TrollChaseState(this) },
             { TrollStateId.Draw, new TrollDrawState(this) },
             { TrollStateId.Shoot, new TrollShootState(this) },
