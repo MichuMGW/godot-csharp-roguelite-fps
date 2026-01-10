@@ -60,7 +60,7 @@ public partial class ExplosionAoE : Node3D
             hitbox.BurningDotMultiplier = burningDotMultiplier;
             hitbox.BleedDotMultiplier = bleedDotMultiplier;
             hitbox.SlowBonus = slowBonus;
-            hitbox.EarthBuildupPerHit = earthBuildupPerHit;
+            hitbox.StunBuildupPerHit = earthBuildupPerHit;
         }
 
         ApplyRadius(radius);

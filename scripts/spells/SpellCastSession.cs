@@ -12,10 +12,8 @@ public partial class SpellCastSession
     public readonly IReleaseSpellBehaviour Release;
     public readonly ICancelableSpellBehaviour Cancel;
 
-    // Ten sam ctx przez cały cast
     public SpellCastContext Ctx;
 
-    // Per-mode runtime
     public float TickAcc;
     public float ChargeTimeAcc;
     public bool HasAutoCasted;

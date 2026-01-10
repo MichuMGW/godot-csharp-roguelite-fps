@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_jn0f8")
-Element = 0
+Element = 1
 EnableBurning = true
 BurningDuration = 3.0
 BurningTickRate = 0.25
@@ -16,8 +16,8 @@ EnableBleed = false
 BleedDuration = 4.0
 BleedTickRate = 0.5
 BleedDotPerTick = 3.0
-EnableEarthBuildup = false
-EarthStunThreshold = 100.0
-EarthBuildupDecayPerSecond = 10.0
-EarthStunDuration = 1.0
+EnableStunBuildup = false
+StunThreshold = 100.0
+StunBuildupDecayPerSecond = 10.0
+StunDuration = 1.0
 metadata/_custom_type_script = "uid://dqdjhp8c7xw30"

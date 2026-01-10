@@ -32,7 +32,7 @@ public class MechGunBurstState : IState, IUpdateState
     {
         if (_shotsLeft <= 0)
         {
-            _owner.ChangeAttackState(MechAttackStateId.None);
+            _owner.ChangeAttackState(MechAttackStateId.Idle);
             return;
         }
 

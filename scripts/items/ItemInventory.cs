@@ -8,8 +8,6 @@ public partial class ItemInventory : Node
 
     private readonly Dictionary<string, ItemStack> _stacks = new();
 
-    [Export] public NodePath PlayerStatsManagerPath;
-
     private PlayerStatsManager _stats;
     private GameEvents _events;
 
@@ -32,12 +30,9 @@ public partial class ItemInventory : Node
         ClearRun();
     }
 
-    private void OnChestRewardResolved(ChestRewardContext ctx, bool claimed)
+    public override void _ExitTree()
     {
-        if (!claimed) return;
-        if (ctx?.Item == null) return;
-
-        AddItem(ctx.Item);
+        _events.ChestRewardResolved -= OnChestRewardResolved;
     }
 
     public IReadOnlyDictionary<string, int> GetCountsByItemId()
@@ -54,12 +49,19 @@ public partial class ItemInventory : Node
             yield return (s.Def, s.Count);
     }
 
+    private void OnChestRewardResolved(ChestRewardContext ctx, bool claimed)
+    {
+        if (!claimed) return;
+        if (ctx?.Item == null) return;
+
+        AddItem(ctx.Item);
+    }
+
     public bool AddItem(ItemDefinition item)
     {
         if (item == null) return false;
         if (string.IsNullOrWhiteSpace(item.Id))
         {
-            GD.PrintErr("RunInventory.AddItem: item has empty Id.");
             return false;
         }
 
@@ -72,11 +74,7 @@ public partial class ItemInventory : Node
         stack.Count += 1;
 
         RebuildStatSources();
-        GD.Print($"RunInventory: added item {item.Id}, new count: {stack.Count}");
-        GD.Print($"BaseDamage now: {_stats.GetStat(StatId.BaseDamage)}");
-        GD.Print($"CritChance now: {_stats.GetStat(StatId.CritChance)}");
-        GD.Print($"HealthRegen now: {_stats.GetStat(StatId.HealthRegen)}");
-        EmitSignal(SignalName.InventoryChanged);
+        EmitSignal(nameof(InventoryChanged));
         return true;
     }
 
@@ -92,8 +90,6 @@ public partial class ItemInventory : Node
         if (_stats == null)
             return;
 
-        // Usuń poprzednie źródła itemowe i ustaw od nowa.
-        // Najprościej: trzymasz prefix.
         _stats.ClearSourcesByPrefix("item:");
 
         foreach (var stack in _stacks.Values)

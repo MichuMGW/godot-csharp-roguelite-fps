@@ -12,7 +12,6 @@ public class PlayerMoveGroundedState : IState, IPhysicsUpdateState
     public void Enter()
     {
         _player.Movement.ResetJumps();
-        // opcjonalnie: animacja "idle/run"
     }
 
     public void Exit() { }
@@ -21,7 +20,6 @@ public class PlayerMoveGroundedState : IState, IPhysicsUpdateState
     {
         float dt = (float)delta;
 
-        // jeśli nie jesteś na ziemi -> airborne (spadek)
         if (!_player.IsOnFloor())
         {
             _player.ChangeMoveState(PlayerMoveStateId.Airborne);
@@ -40,7 +38,6 @@ public class PlayerMoveGroundedState : IState, IPhysicsUpdateState
             return;
         }
 
-        // grawitacja/utrzymanie Y=0 na ziemi
         _player.Movement.ApplyGravity(dt);
     }
 }

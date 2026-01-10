@@ -29,21 +29,18 @@ public partial class LevelUpOverlay : CanvasLayer
     [Export] public NodePath Button3TitlePath = "MarginContainer/Panel/MarginContainer/VBoxContainer/MarginContainer2/VBoxContainer/Button3/MarginContainer6/VBoxContainer/Title";
     [Export] public NodePath Button3DescPath  = "MarginContainer/Panel/MarginContainer/VBoxContainer/MarginContainer2/VBoxContainer/Button3/MarginContainer6/VBoxContainer/Description";
 
-    [ExportGroup("Behaviour")]
-    [Export] public bool AutoResolveViaGameEvents = false;
-
     private Label _header;
 
-    private Button _b1;
-    private Button _b2;
-    private Button _b3;
+    private Button _button1;
+    private Button _button2;
+    private Button _button3;
 
-    private Label _t1;
-    private Label _d1;
-    private Label _t2;
-    private Label _d2;
-    private Label _t3;
-    private Label _d3;
+    private Label _title1;
+    private Label _desc1;
+    private Label _title2;
+    private Label _desc2;
+    private Label _title3;
+    private Label _desc3;
 
     private Godot.Collections.Array<LevelUpOffer> _options = new();
     private GameEvents _events;
@@ -56,30 +53,27 @@ public partial class LevelUpOverlay : CanvasLayer
 
         _header = GetNodeOrNull<Label>(HeaderLabelPath);
 
-        _b1 = GetNodeOrNull<Button>(Button1Path);
-        _b2 = GetNodeOrNull<Button>(Button2Path);
-        _b3 = GetNodeOrNull<Button>(Button3Path);
+        _button1 = GetNodeOrNull<Button>(Button1Path);
+        _button2 = GetNodeOrNull<Button>(Button2Path);
+        _button3 = GetNodeOrNull<Button>(Button3Path);
 
-        _t1 = GetNodeOrNull<Label>(Button1TitlePath);
-        _d1 = GetNodeOrNull<Label>(Button1DescPath);
+        _title1 = GetNodeOrNull<Label>(Button1TitlePath);
+        _desc1 = GetNodeOrNull<Label>(Button1DescPath);
 
-        _t2 = GetNodeOrNull<Label>(Button2TitlePath);
-        _d2 = GetNodeOrNull<Label>(Button2DescPath);
+        _title2 = GetNodeOrNull<Label>(Button2TitlePath);
+        _desc2 = GetNodeOrNull<Label>(Button2DescPath);
 
-        _t3 = GetNodeOrNull<Label>(Button3TitlePath);
-        _d3 = GetNodeOrNull<Label>(Button3DescPath);
+        _title3 = GetNodeOrNull<Label>(Button3TitlePath);
+        _desc3 = GetNodeOrNull<Label>(Button3DescPath);
 
-        if (_b1 != null) _b1.Pressed += () => PickIndex(0);
-        if (_b2 != null) _b2.Pressed += () => PickIndex(1);
-        if (_b3 != null) _b3.Pressed += () => PickIndex(2);
+        if (_button1 != null) _button1.Pressed += () => PickIndex(0);
+        if (_button2 != null) _button2.Pressed += () => PickIndex(1);
+        if (_button3 != null) _button3.Pressed += () => PickIndex(2);
 
         // Na start ukryj / wyczyść
         SetOptions(new Godot.Collections.Array<LevelUpOffer>());
     }
 
-    /// <summary>
-    /// Ustawia opcje do wyboru i wypełnia UI.
-    /// </summary>
     public void SetOptions(Godot.Collections.Array<LevelUpOffer> options)
     {
         _options = options ?? new Godot.Collections.Array<LevelUpOffer>();
@@ -87,9 +81,24 @@ public partial class LevelUpOverlay : CanvasLayer
         if (_header != null)
             _header.Text = "Choose an Upgrade";
 
-        ApplySlot(0, _b1, _t1, _d1);
-        ApplySlot(1, _b2, _t2, _d2);
-        ApplySlot(2, _b3, _t3, _d3);
+        ApplySlot(0, _button1, _title1, _desc1);
+        ApplySlot(1, _button2, _title2, _desc2);
+        ApplySlot(2, _button3, _title3, _desc3);
+    }
+
+    private void PickIndex(int idx)
+    {
+        if (idx < 0 || idx >= _options.Count)
+            return;
+
+        var picked = _options[idx];
+        if (picked == null || picked.Upgrade == null)
+            return;
+
+        EmitSignal(nameof(Picked), picked);
+
+        if (_events != null)
+            _events.ResolveLevelUpChoice(picked);
     }
 
     private void ApplySlot(int idx, Button btn, Label title, Label desc)
@@ -114,21 +123,6 @@ public partial class LevelUpOverlay : CanvasLayer
             desc.Text = BuildDescriptionText(offer);
     }
 
-    private void PickIndex(int idx)
-    {
-        if (idx < 0 || idx >= _options.Count)
-            return;
-
-        var picked = _options[idx];
-        if (picked == null || picked.Upgrade == null)
-            return;
-
-        EmitSignal(SignalName.Picked, picked);
-
-        if (AutoResolveViaGameEvents && _events != null)
-            _events.ResolveLevelUpChoice(picked);
-    }
-
     private string FormatRarity(UpgradeRarity rarity)
     {
         // Bez kolorów, bo nie prosiłeś. Same teksty.
@@ -148,35 +142,39 @@ public partial class LevelUpOverlay : CanvasLayer
         var up = offer.Upgrade;
         float rm = offer.RarityMult;
 
-        // Jeśli masz sensowny opis w definicji, pokaż go + efekty poniżej
-        string baseDesc = string.IsNullOrWhiteSpace(up.Description) ? "" : (up.Description.Trim() + "\n");
+        // bazowy opis (jeśli jest)
+        string baseDesc = string.IsNullOrWhiteSpace(up.Description)
+            ? ""
+            : up.Description.Trim();
 
-        // Efekty z BaseStatMods przeliczone przez rarity
-        // Add: * rm
-        // Mult: 1 + (baseMult - 1) * rm
         if (up.StatMods == null || up.StatMods.Count == 0)
-            return baseDesc.TrimEnd();
+            return baseDesc;
 
-        string effects = "";
+        var parts = new System.Collections.Generic.List<string>();
+
         foreach (var m in up.StatMods)
         {
             float add = m.Add * rm;
             float mult = ScaleMult(m.Mult, rm);
 
-            // Składamy jedną linijkę per stat
-            // Pokazujemy tylko to, co ma sens (nie spamuj 0 i 1)
-            string line = BuildEffectLine(m.Stat, add, mult);
-            if (!string.IsNullOrEmpty(line))
-                effects += (effects.Length == 0 ? "" : "\n") + line;
+            string part = BuildEffectPair(m.Stat, add, mult); // <-- nowa funkcja
+            if (!string.IsNullOrEmpty(part))
+                parts.Add(part);
         }
 
-        if (string.IsNullOrEmpty(effects))
-            return baseDesc.TrimEnd();
+        string effects = string.Join(", ", parts);
 
-        return (baseDesc + effects).TrimEnd();
+        if (string.IsNullOrWhiteSpace(baseDesc))
+            return effects;
+
+        if (string.IsNullOrWhiteSpace(effects))
+            return baseDesc;
+
+        // Jedna linia: opis + efekty (bez '\n')
+        return $"{baseDesc} {effects}";
     }
 
-    private string BuildEffectLine(StatId stat, float add, float mult)
+    private string BuildEffectPair(StatId stat, float add, float mult)
     {
         bool hasAdd = !Mathf.IsEqualApprox(add, 0f);
         bool hasMult = !Mathf.IsEqualApprox(mult, 1f);
@@ -184,19 +182,18 @@ public partial class LevelUpOverlay : CanvasLayer
         if (!hasAdd && !hasMult)
             return "";
 
-        // Formatowanie “ludzkie”
-        // Add pokazujemy jako +X
-        // Mult pokazujemy jako x1.15
-        string statName = stat.ToString();
+        string statName = stat.ToString(); // jak chcesz ładne nazwy, zmapujesz sobie enum -> string
 
+        // "opis: wartość"
         if (hasAdd && hasMult)
-            return $"{statName}: +{FormatNumber(add)}  |  x{FormatNumber(mult)}";
+            return $": +{FormatNumber(add)} / x{FormatNumber(mult)}";
 
         if (hasAdd)
-            return $"{statName}: +{FormatNumber(add)}";
+            return $"+{FormatNumber(add)}";
 
-        return $"{statName}: x{FormatNumber(mult)}";
+        return $": x{FormatNumber(mult)}";
     }
+
 
     private string FormatNumber(float v)
     {

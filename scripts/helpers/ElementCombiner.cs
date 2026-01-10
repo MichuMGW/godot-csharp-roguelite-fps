@@ -2,11 +2,8 @@ public static class ElementCombiner
 {
     public static Element Combine(Element a, Element b)
     {
-        if (a == Element.None) return b;
-        if (b == Element.None) return a;
-        if (a == b) return a; // i tak zablokujesz w UI, ale niech będzie
+        if (a == b) return a;
 
-        // kolejność nie ma znaczenia
         return (a, b) switch
         {
             (Element.Fire, Element.Water) or (Element.Water, Element.Fire) => Element.Dark,

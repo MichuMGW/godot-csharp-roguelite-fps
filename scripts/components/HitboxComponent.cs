@@ -18,7 +18,7 @@ public partial class HitboxComponent : Area3D, IDamageSource
     [Export] public float BurningDotMultiplier { get; set; } = 1f;
     [Export] public float BleedDotMultiplier { get; set; } = 1f;
     [Export] public float SlowBonus { get; set; } = 0f;
-    [Export] public float EarthBuildupPerHit { get; set; } = 0f;
+    [Export] public float StunBuildupPerHit { get; set; } = 0f;
 
     private bool _active;
     public bool Active
@@ -47,7 +47,7 @@ public partial class HitboxComponent : Area3D, IDamageSource
     public float GetBurningDotMultiplier() => BurningDotMultiplier;
     public float GetBleedDotMultiplier() => BleedDotMultiplier;
     public float GetSlowBonus() => SlowBonus;
-    public float GetEarthBuildupPerHit() => EarthBuildupPerHit;
+    public float GetStunBuildupPerHit() => StunBuildupPerHit;
 
     public bool CanHitAgain(Node3D target)
     {

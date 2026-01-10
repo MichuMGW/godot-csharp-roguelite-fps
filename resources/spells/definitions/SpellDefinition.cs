@@ -24,17 +24,11 @@ public abstract partial class SpellDefinition : Resource
     [Export] public bool EnableRehit { get; set; } = false;
     [Export(PropertyHint.Range, "0.01,2.0,0.01")]
     public float RehitIntervalSeconds { get; set; } = 0.25f;
-    // Jak długo ma działać rehit po “zaczepieniu” (0 = bez limitu, do końca życia pocisku)
-    [Export(PropertyHint.Range, "0,10,0.1")]
-    public float RehitMaxDurationSeconds { get; set; } = 0f;
 
     [ExportGroup("Status Magnitudes")]
     [Export] public ElementStatusProfile StatusProfile { get; set; } = null;
-    [Export] public float BurningDotMultiplier = 1f; // FireExplosion np. 4.0
-    [Export] public float SlowMultiplierBonus = 0f;  // jeśli chcesz różne slowy
+    [Export] public float BurningDotMultiplier = 1f;
+    [Export] public float SlowMultiplierBonus = 0f;
     [Export] public float BleedDotMultiplier = 1f;
-
-    [Export] public float EarthBuildupPerHit = 0f;   // Earth spell “siła”
-
-
+    [Export] public float StunBuildupPerHit = 0f;
 }

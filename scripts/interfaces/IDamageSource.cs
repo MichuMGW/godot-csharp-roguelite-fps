@@ -15,5 +15,5 @@ public interface IDamageSource
     float GetBurningDotMultiplier();
     float GetBleedDotMultiplier();
     float GetSlowBonus();
-    float GetEarthBuildupPerHit();
+    float GetStunBuildupPerHit();
 }

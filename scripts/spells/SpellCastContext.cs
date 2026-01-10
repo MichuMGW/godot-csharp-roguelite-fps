@@ -8,5 +8,4 @@ public struct SpellCastContext
     public SpellSlot Slot;
     public SpellInstance Instance;
     public SpellCastStats Stats;
-    public float Charge01; // 0..1
 }

@@ -122,7 +122,7 @@ public class ExplosionSpellBehaviour : ISpellBehaviour, IPressSpellBehaviour, IH
             def.BurningDotMultiplier,
             def.BleedDotMultiplier,
             def.SlowMultiplierBonus,
-            def.EarthBuildupPerHit
+            def.StunBuildupPerHit
         );
 
         return true;

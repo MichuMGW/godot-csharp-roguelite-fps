@@ -11,7 +11,6 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
     public HitboxComponent Hitbox { get; private set; }
     public DifficultySnapshot CurrentDifficulty { get; private set; }
 
-    // Zamiast GetFirstNodeInGroup w każdym enemy:
     public Node3D Player { get; private set; }
     public Node3D PlayerAimTarget { get; private set; }
 
@@ -25,19 +24,19 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
 
     private bool _alive = true;
 
+    private GameEvents _events;
+
     public override void _Ready()
     {
         FindNodes();
         SetupAliveCollisions();
-        WireSignals();
+        SubscribeEvents();
 
         LoadBaseStats();
         OnAfterReady();
 
-        // Krytyczne: komponenty NIE mają własnego ticka.
         VelocityComp?.SetPhysicsProcess(false);
         Pathfind?.SetPhysicsProcess(false);
-        // StatusComponent też: SetProcess(false) i ręcznie tickujemy (patrz niżej).
     }
 
     public override void _PhysicsProcess(double delta)
@@ -45,31 +44,32 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
         if (!_alive) return;
         float dt = (float)delta;
 
-        // 1) “mózg” (state machine)
-        TickBrain(dt);
+        TickStateMachine(dt);
 
-        // 2) nawigacja (rzadziej niż co klatkę, ale wywołujemy metodę tick)
         if (Pathfind != null)
             Pathfind.Tick(dt);
 
-        // 3) ruch (MoveAndSlide robimy raz tutaj)
         if (VelocityComp != null)
             VelocityComp.Tick(dt);
     }
 
-    // Hook dla StateMachineEnemy
-    protected virtual void TickBrain(float dt) { }
+    protected virtual void TickStateMachine(float dt) { }
 
     protected virtual void FindNodes()
     {
         VelocityComp = GetNodeOrNull<VelocityComponent>("VelocityComponent");
         Pathfind = GetNodeOrNull<PathfindComponent>("PathfindComponent");
         Health = GetNodeOrNull<HealthComponent>("HealthComponent");
-        if (Health != null) Hurtbox = Health.Hurtbox;
-        Hitbox = GetNodeOrNull<HitboxComponent>("HitboxComponent");
+        
+        if (Health != null)
+            Hurtbox = Health.Hurtbox;
+
+        //Hitbox = GetNodeOrNull<HitboxComponent>("HitboxComponent");
 
         Player = GetTree().GetFirstNodeInGroup("player") as Node3D;
         PlayerAimTarget = GetTree().GetFirstNodeInGroup("player_target") as Node3D;
+
+        _events = GetTree().Root.GetNodeOrNull<GameEvents>("GameEvents");
     }
 
     protected virtual void SetupAliveCollisions()
@@ -84,7 +84,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
         CollisionLayer = PhysicsLayers.NONE;
     }
 
-    protected virtual void WireSignals()
+    protected virtual void SubscribeEvents()
     {
         if (Health != null)
             Health.EntityDied += OnDiedCommon;
@@ -94,6 +94,8 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
     {
         _alive = false;
         SetupDeadCollisions();
+
+        _events.EmitEnemyDied();
 
         if (Pathfind != null) Pathfind.Active = false;
         if (VelocityComp != null) VelocityComp.Active = false;
@@ -108,7 +110,6 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
     {
         if (StatsResource == null)
         {
-            GD.PushError($"[{Name}] Missing StatsResource. Using defaults.");
             _baseMaxHealth = 100f;
             _baseMoveSpeed = 5f;
             _baseDamage = 10f;
@@ -124,7 +125,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
         MoveSpeed = _baseMoveSpeed;
         Damage = _baseDamage;
 
-        ApplyStatsToComponents(true);
+        ApplyStatsToComponents(initialLoad: true);
     }
 
     public void ApplyDifficulty(DifficultySnapshot difficulty)
@@ -133,7 +134,7 @@ public abstract partial class Enemy : CharacterBody3D, IScalableEnemy
         MaxHealth = _baseMaxHealth * difficulty.HpMultiplier;
         MoveSpeed = _baseMoveSpeed * difficulty.MoveSpeedMultiplier;
         Damage = _baseDamage * difficulty.DamageMultiplier;
-        ApplyStatsToComponents(false);
+        ApplyStatsToComponents(initialLoad: false);
     }
 
     protected virtual void ApplyStatsToComponents(bool initialLoad)

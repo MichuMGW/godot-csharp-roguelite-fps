@@ -12,6 +12,7 @@ public class SkeletonDeadState : IState
     public void Enter()
     {
         _owner.Hitbox.Active = false;
+
         _owner.PlayAnimationRandomized("Skeleton_Die");
 
         _owner.Animation.AnimationFinished += OnAnimationFinished;

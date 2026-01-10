@@ -36,6 +36,15 @@ public partial class LevelUpManager : Node
             _events.LevelUpChoiceResolved += OnChoiceResolved;
     }
 
+    public override void _ExitTree()
+    {
+        if (_exp != null)
+            _exp.LevelUp -= OnLevelUp;
+
+        if (_events != null)
+            _events.LevelUpChoiceResolved -= OnChoiceResolved;
+    }
+
     public void ResetRun()
     {
         _stacks.Clear();
@@ -59,10 +68,7 @@ public partial class LevelUpManager : Node
     {
         if (picked == null || picked.Upgrade == null) return;
 
-        // tracking “stacks”
         AddStack(picked.Upgrade);
-
-        // aplikuj staty z rarity jako osobny sourceId (żeby mythic faktycznie był mythic)
         ApplyOfferOnce(picked);
     }
 
