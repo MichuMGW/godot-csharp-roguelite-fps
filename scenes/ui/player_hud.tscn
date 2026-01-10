@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://b7w7abb7e6in2"]
+[gd_scene load_steps=14 format=3 uid="uid://b7w7abb7e6in2"]
 
 [ext_resource type="Theme" uid="uid://csif8wnmjs1io" path="res://assets/themes/ui_theme.tres" id="1_3cn05"]
 [ext_resource type="Script" uid="uid://qx1ynm0lrtap" path="res://scripts/ui/PlayerHud.cs" id="1_e6e0b"]
@@ -10,6 +10,7 @@
 [ext_resource type="FontFile" uid="uid://d2vf3deu7a1b0" path="res://assets/fonts/Kenney High.ttf" id="5_3cn05"]
 [ext_resource type="Texture2D" uid="uid://cjfpsvm5holen" path="res://assets/textures/ui/bars/ManaProgress.png" id="5_nh6vl"]
 [ext_resource type="Texture2D" uid="uid://dmhrpwp4al77i" path="res://assets/textures/ui/bars/ExpBar.png" id="6_3cn05"]
+[ext_resource type="Texture2D" uid="uid://ojhvqyxwb1tx" path="res://assets/icons/crosshair.png" id="11_7l16x"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_bhaj2"]
 font = ExtResource("5_3cn05")
@@ -243,6 +244,7 @@ texture_filter = 1
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 step = 0.01
+value = 100.0
 nine_patch_stretch = true
 texture_under = ExtResource("2_u7a8l")
 texture_over = ExtResource("3_hbwp2")
@@ -305,7 +307,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "A"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -371,3 +372,19 @@ vertical_alignment = 1
 layout_mode = 2
 text = "Dash"
 horizontal_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="."]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("11_7l16x")

@@ -141,27 +141,28 @@ xfade_time = 1.0
 xfade_time = 1.0
 
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_pw1ia"]
+states/End/position = Vector2(333, -75)
 states/Mech_CrouchBeforeJump/node = SubResource("AnimationNodeAnimation_4egvb")
-states/Mech_CrouchBeforeJump/position = Vector2(556, 247)
+states/Mech_CrouchBeforeJump/position = Vector2(544, 247)
 states/Mech_CrouchToShoot/node = SubResource("AnimationNodeAnimation_7s435")
 states/Mech_CrouchToShoot/position = Vector2(556, 76)
 states/Mech_Die/node = SubResource("AnimationNodeAnimation_omly6")
-states/Mech_Die/position = Vector2(533, 2)
+states/Mech_Die/position = Vector2(333, 8)
 states/Mech_Idle/node = SubResource("AnimationNodeAnimation_n87kn")
 states/Mech_Idle/position = Vector2(187, 92)
 states/Mech_Jump/node = SubResource("AnimationNodeAnimation_xainl")
-states/Mech_Jump/position = Vector2(343, 247)
+states/Mech_Jump/position = Vector2(333, 247)
 states/Mech_Land/node = SubResource("AnimationNodeAnimation_g3fm1")
-states/Mech_Land/position = Vector2(120, 247)
+states/Mech_Land/position = Vector2(155, 247)
 states/Mech_SpinLeft/node = SubResource("AnimationNodeAnimation_xdc72")
-states/Mech_SpinLeft/position = Vector2(556, 158)
+states/Mech_SpinLeft/position = Vector2(556, 179)
 states/Mech_SpinRight/node = SubResource("AnimationNodeAnimation_pw1ia")
-states/Mech_SpinRight/position = Vector2(724, 158)
+states/Mech_SpinRight/position = Vector2(556, 3)
 states/Mech_Walk/node = SubResource("AnimationNodeAnimation_u1ljx")
 states/Mech_Walk/position = Vector2(333, 92)
 states/Start/position = Vector2(64, 92)
 transitions = ["Mech_Walk", "Mech_CrouchBeforeJump", SubResource("AnimationNodeStateMachineTransition_v78xy"), "Mech_Walk", "Mech_CrouchToShoot", SubResource("AnimationNodeStateMachineTransition_dm5w7"), "Mech_Land", "Mech_Walk", SubResource("AnimationNodeStateMachineTransition_n87kn"), "Mech_Walk", "Mech_Die", SubResource("AnimationNodeStateMachineTransition_y13g3"), "Mech_Die", "End", SubResource("AnimationNodeStateMachineTransition_4tj1r"), "Start", "Mech_Idle", SubResource("AnimationNodeStateMachineTransition_pw1ia"), "Mech_Idle", "Mech_Walk", SubResource("AnimationNodeStateMachineTransition_5aooi"), "Mech_CrouchBeforeJump", "Mech_Jump", SubResource("AnimationNodeStateMachineTransition_6pqxc"), "Mech_Jump", "Mech_Land", SubResource("AnimationNodeStateMachineTransition_aivtk"), "Mech_CrouchToShoot", "Mech_SpinLeft", SubResource("AnimationNodeStateMachineTransition_y2nai"), "Mech_SpinLeft", "Mech_Walk", SubResource("AnimationNodeStateMachineTransition_t0e52"), "Mech_CrouchToShoot", "Mech_SpinRight", SubResource("AnimationNodeStateMachineTransition_xdc72"), "Mech_SpinRight", "Mech_Walk", SubResource("AnimationNodeStateMachineTransition_1v78q")]
-graph_offset = Vector2(60, -25)
+graph_offset = Vector2(-85, -181)
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_4tj1r"]
 animation = &"Mech_BurstShooting"
@@ -258,6 +259,7 @@ transitions = ["Start", "Mech_Idle", SubResource("AnimationNodeStateMachineTrans
 graph_offset = Vector2(-55, -2)
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_y2nai"]
+graph_offset = Vector2(-23.2636, -142.482)
 nodes/Add2/node = SubResource("AnimationNodeAdd2_n87kn")
 nodes/Add2/position = Vector2(500, 120)
 nodes/Locomotion/node = SubResource("AnimationNodeStateMachine_pw1ia")

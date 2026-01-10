@@ -19,10 +19,10 @@ EnableBleed = true
 BleedDuration = 4.0
 BleedTickRate = 0.5
 BleedDotPerTick = 3.0
-EnableEarthBuildup = false
-EarthStunThreshold = 100.0
-EarthBuildupDecayPerSecond = 10.0
-EarthStunDuration = 1.0
+EnableStunBuildup = false
+StunThreshold = 100.0
+StunBuildupDecayPerSecond = 10.0
+StunDuration = 1.0
 metadata/_custom_type_script = "uid://dqdjhp8c7xw30"
 
 [resource]
@@ -53,10 +53,9 @@ BaseCooldown = 1.0
 BaseManaCost = 1.0
 EnableRehit = false
 RehitIntervalSeconds = 0.25
-RehitMaxDurationSeconds = 0.0
 StatusProfile = SubResource("Resource_5a3bv")
 BurningDotMultiplier = 1.0
 SlowMultiplierBonus = 0.0
 BleedDotMultiplier = 1.0
-EarthBuildupPerHit = 0.0
+StunBuildupPerHit = 0.0
 metadata/_custom_type_script = "uid://y2naeclibxt3"
